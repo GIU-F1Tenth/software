@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>pure_pursuit_node</name>
+  <name>trajectory_planning</name>
   <version>0.0.1</version>
-  <description>GIU F1Tenth Car's pure puruit calculation node</description>
+  <description>GIU F1Tenth Car's trajectory planning package</description>
   <maintainer email="fam@awadlouis.com">fam</maintainer>
   <license>TODO: License declaration</license>
 

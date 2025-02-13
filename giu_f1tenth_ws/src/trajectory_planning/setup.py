@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'pure_pursuit_node'
+package_name = 'trajectory_planning'
 
 setup(
     name=package_name,
@@ -16,7 +16,7 @@ setup(
     author='Karim',
     maintainer='Fam Shihata',
     maintainer_email='fam@awadlouis.com',
-    description='GIU F1Tenth Car\'s pure puruit calculation node',
+    description='GIU F1Tenth Car\'s trajectory planning package',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
