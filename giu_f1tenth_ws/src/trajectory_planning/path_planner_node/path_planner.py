@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import rospy
+import rclpy
 import math
 import cv2
 import numpy as np
@@ -8,12 +8,31 @@ from typing import Union
 from std_msgs.msg import Header
 from nav_msgs.msg import GridCells, OccupancyGrid, Path
 from geometry_msgs.msg import Point, Quaternion, Pose, PoseStamped
-from priority_queue import PriorityQueue
-from tf.transformations import quaternion_from_euler
-
+from queue import PriorityQueue
 
 DIRECTIONS_OF_4 = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 DIRECTIONS_OF_8 = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+
+def quaternion_from_euler(roll, pitch, yaw):
+    """
+    Converts euler roll, pitch, yaw to quaternion (w in last place)
+    quat = [x, y, z, w]
+    Bellow should be replaced when porting for ROS 2 Python tf_conversions is done.
+    """
+    cy = math.cos(yaw * 0.5)
+    sy = math.sin(yaw * 0.5)
+    cp = math.cos(pitch * 0.5)
+    sp = math.sin(pitch * 0.5)
+    cr = math.cos(roll * 0.5)
+    sr = math.sin(roll * 0.5)
+
+    q = [0] * 4
+    q[0] = cy * cp * cr + sy * sp * sr
+    q[1] = cy * cp * sr - sy * sp * cr
+    q[2] = sy * cp * sr + cy * sp * cr
+    q[3] = sy * cp * cr - cy * sp * sr
+
+    return q
 
 
 class PathPlanner:
@@ -292,7 +311,7 @@ class PathPlanner:
 
     @staticmethod
     def calc_cost_map(mapdata: OccupancyGrid) -> np.ndarray:
-        rospy.loginfo("Calculating cost map")
+        rclpy.loginfo("Calculating cost map")
 
         # Create numpy array from mapdata
         width = mapdata.info.width
