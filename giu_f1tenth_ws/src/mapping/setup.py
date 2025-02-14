@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'mapping_node = frontier_search_node.frontier_exploration:main',
         ],
     },
 )

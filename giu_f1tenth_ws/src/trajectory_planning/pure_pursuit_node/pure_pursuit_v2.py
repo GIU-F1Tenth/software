@@ -4,7 +4,7 @@ import math
 import rclpy
 import numpy as np
 from rclpy.node import Node, Publisher
-from ..path_planner_node.path_planner import PathPlanner
+from path_planner_node.path_planner import PathPlanner
 import rclpy.subscription
 from std_msgs.msg import Header, Bool
 from nav_msgs.msg import Path, Odometry, GridCells, OccupancyGrid
@@ -48,17 +48,17 @@ class PurePursuit(Node):
         )
 
         # Publishers
-        self.cmd_vel: Publisher = self.create_publisher("/cmd_vel", Twist, queue_size=10)
+        self.cmd_vel: Publisher = self.create_publisher("/cmd_vel", Twist, 10)
         self.lookahead_pub: Publisher = self.create_publisher(
-            "/pure_pursuit/lookahead", PointStamped, queue_size=10
+            "/pure_pursuit/lookahead", PointStamped, 10
         )
 
         if self.is_in_debug_mode:
             self.fov_cells_pub: Publisher = self.create_publisher(
-                "/pure_pursuit/fov_cells", GridCells, queue_size=100
+                "/pure_pursuit/fov_cells", GridCells, 100
             )
             self.close_wall_cells_pub: Publisher = self.create_publisher(
-                "/pure_pursuit/close_wall_cells", GridCells, queue_size=100
+                "/pure_pursuit/close_wall_cells", GridCells, 100
             )
 
         # Subscribers
@@ -365,6 +365,11 @@ class PurePursuit(Node):
             # Send speed
             self.send_speed(drive_speed, turn_speed)
 
+def main(): 
+    rclpy.init()
+    pure_pursuit = PurePursuit()
+    pure_pursuit.run()
+    rclpy.shutdown()
 
 if __name__ == "__main__":
     PurePursuit().run()

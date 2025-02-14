@@ -9,11 +9,11 @@ import numpy as np
 from typing import Union
 from rclpy.node import Node
 import rclpy.time
-from ...trajectory_planning.path_planner_node.path_planner import PathPlanner
-from frontier_search import FrontierSearch
+from path_planner_node.path_planner import PathPlanner
+from .frontier_search import FrontierSearch
 from nav_msgs.msg import OccupancyGrid, Path, GridCells, Odometry
 from geometry_msgs.msg import Pose, Point, Quaternion
-from ...giu_f1tenth_messages.msg import FrontierList
+from giu_f1tenth_messages.msg import FrontierList
 from tf2_ros import TransformListener
 
 def euler_from_quaternion(quaternion):
@@ -40,8 +40,8 @@ def euler_from_quaternion(quaternion):
 
     return roll, pitch, yaw
 class FrontierExploration(Node):
-    def init(self):
-        super().__init__("frontier_exploration")
+    def __init__(self):
+        super().__init__(node_name="frontier_exploration")
 
         # Set if in debug mode
         self.is_in_debug_mode = (
@@ -50,22 +50,22 @@ class FrontierExploration(Node):
 
         # Publishers
         self.pure_pursuit_pub = self.create_publisher(
-            "/pure_pursuit/path", Path, queue_size=10
+            "/pure_pursuit/path", Path, 10
         )
 
         if self.is_in_debug_mode:
             self.frontier_cells_pub = self.create_publisher(
-                "/frontier_exploration/frontier_cells", GridCells, queue_size=10
+                "/frontier_exploration/frontier_cells", GridCells, 10
             )
             self.start_pub = self.create_publisher(
-                "/frontier_exploration/start", GridCells, queue_size=10
+                "/frontier_exploration/start", GridCells, 10
             )
             self.goal_pub = self.create_publisher(
-                "/frontier_exploration/goal", GridCells, queue_size=10
+                "/frontier_exploration/goal", GridCells, 10
             )
-            self.cspace_pub = self.create_publisher("/cspace", GridCells, queue_size=10)
+            self.cspace_pub = self.create_publisher("/cspace", GridCells, 10)
             self.cost_map_pub = self.create_publisher(
-                "/cost_map", OccupancyGrid, queue_size=10
+                "/cost_map", OccupancyGrid, 10
             )
 
         # Subscribers
@@ -81,7 +81,7 @@ class FrontierExploration(Node):
         self.no_path_found_counter = 0
         self.no_frontiers_found_counter = 0
         self.is_finished_exploring = False
-        self.rate = self.get_parameter("rate").value or 20
+        self.rate = 20 # self.get_parameter("rate").value or 20
 
     def update_odometry(self, msg: "Union[Odometry, None]" = None):
         """
@@ -298,5 +298,11 @@ class FrontierExploration(Node):
 
             rate.sleep()
 
+def main(): 
+    rclpy.init()
+    frontier_exploration = FrontierExploration()
+    frontier_exploration.run()
+    rclpy.shutdown()
+
 if __name__ == "__main__":
-    FrontierExploration().run()
+    main()

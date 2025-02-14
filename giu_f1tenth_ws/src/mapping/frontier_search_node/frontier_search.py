@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from ...trajectory_planning.path_planner_node.path_planner import PathPlanner
+from path_planner_node.path_planner import PathPlanner
 from nav_msgs.msg import OccupancyGrid
-from ...giu_f1tenth_messages.msg import Frontier, FrontierList
+from giu_f1tenth_messages.msg import Frontier, FrontierList
 
 
 class FrontierSearch:
