@@ -96,6 +96,8 @@ class PurePursuit(Node):
         self.enabled = True
         self.reversed = False
         self.closest_distance = float("inf")
+        self.timer = self.create_timer(0.01, self.run)
+        self.get_logger().info("Pure pursuit node started")
 
     def update_odometry(self, msg: Odometry):
         """
@@ -286,94 +288,92 @@ class PurePursuit(Node):
         self.send_speed(0.0, 0.0)
 
     def run(self):
-        self.get_logger().info("Pure pursuit node started")
         
-        while rclpy.ok():
-            rclpy.spin_once(self)
-            if self.pose is None:
-                continue
+        # If no pose, stop
+        if self.pose is None:
+            return
 
-            # If not enabled, do nothing
-            if not self.enabled:
-                continue
+        # If not enabled, do nothing
+        if not self.enabled:
+            return
 
-            # If no path, stop
-            if self.path is None or not self.path.poses:
-                self.stop()
-                continue
+        # If no path, stop
+        if self.path is None or not self.path.poses:
+            self.stop()
+            return
 
-            goal = self.get_goal()
+        goal = self.get_goal()
 
-            nearest_waypoint_index = self.find_nearest_waypoint_index()
-            lookahead = self.find_lookahead(
-                nearest_waypoint_index, self.LOOKAHEAD_DISTANCE
-            )
+        nearest_waypoint_index = self.find_nearest_waypoint_index()
+        lookahead = self.find_lookahead(
+            nearest_waypoint_index, self.LOOKAHEAD_DISTANCE
+        )
 
-            self.lookahead_pub.publish(
-                PointStamped(header=Header(frame_id="map"), point=lookahead)
-            )
+        self.lookahead_pub.publish(
+            PointStamped(header=Header(frame_id="map"), point=lookahead)
+        )
 
-            # Calculate alpha (angle between target and current position)
-            position = self.pose.position
-            orientation = self.pose.orientation
-            roll, pitch, yaw = euler_from_quaternion(
-                [orientation.x, orientation.y, orientation.z, orientation.w]
-            )
-            x = position.x
-            y = position.y
-            dx = lookahead.x - x
-            dy = lookahead.y - y
-            self.alpha = float(np.arctan2(dy, dx) - yaw)
-            if self.alpha > np.pi:
-                self.alpha -= 2 * np.pi
-            elif self.alpha < -np.pi:
-                self.alpha += 2 * np.pi
+        # Calculate alpha (angle between target and current position)
+        position = self.pose.position
+        orientation = self.pose.orientation
+        roll, pitch, yaw = euler_from_quaternion(
+            [orientation.x, orientation.y, orientation.z, orientation.w]
+        )
+        x = position.x
+        y = position.y
+        dx = lookahead.x - x
+        dy = lookahead.y - y
+        self.alpha = float(np.arctan2(dy, dx) - yaw)
+        if self.alpha > np.pi:
+            self.alpha -= 2 * np.pi
+        elif self.alpha < -np.pi:
+            self.alpha += 2 * np.pi
 
-            # If the lookahead is behind the robot, follow the path backwards
-            self.reversed = abs(self.alpha) > np.pi / 2
+        # If the lookahead is behind the robot, follow the path backwards
+        self.reversed = abs(self.alpha) > np.pi / 2
 
-            # Calculate the lookahead distance and center of curvature
-            lookahead_distance = PurePursuit.distance(x, y, lookahead.x, lookahead.y)
-            radius_of_curvature = float(lookahead_distance / (2 * np.sin(self.alpha)))
+        # Calculate the lookahead distance and center of curvature
+        lookahead_distance = PurePursuit.distance(x, y, lookahead.x, lookahead.y)
+        radius_of_curvature = float(lookahead_distance / (2 * np.sin(self.alpha)))
 
-            # Calculate drive speed
-            drive_speed = (-1 if self.reversed else 1) * self.MAX_DRIVE_SPEED
+        # Calculate drive speed
+        drive_speed = (-1 if self.reversed else 1) * self.MAX_DRIVE_SPEED
 
-            # Stop if at goal
-            distance_to_goal = PurePursuit.distance(x, y, goal.x, goal.y)
-            if distance_to_goal < self.DISTANCE_TOLERANCE:
-                self.stop()
-                continue
+        # Stop if at goal
+        distance_to_goal = PurePursuit.distance(x, y, goal.x, goal.y)
+        if distance_to_goal < self.DISTANCE_TOLERANCE:
+            self.stop()
+            return
 
-            # Calculate turn speed
-            turn_speed = self.TURN_SPEED_KP * drive_speed / radius_of_curvature
+        # Calculate turn speed
+        turn_speed = self.TURN_SPEED_KP * drive_speed / radius_of_curvature
 
-            # Obstacle avoicance
-            turn_speed += self.calculate_steering_adjustment()
+        # Obstacle avoicance
+        turn_speed += self.calculate_steering_adjustment()
 
-            # Clamp turn speed
-            turn_speed = max(-self.MAX_TURN_SPEED, min(self.MAX_TURN_SPEED, turn_speed))
+        # Clamp turn speed
+        turn_speed = max(-self.MAX_TURN_SPEED, min(self.MAX_TURN_SPEED, turn_speed))
 
-            # Slow down if close to obstacle
-            if self.closest_distance < self.OBSTACLE_AVOIDANCE_MAX_SLOW_DOWN_DISTANCE:
-                drive_speed *= float(
-                    np.interp(
-                        self.closest_distance,
-                        [
-                            self.OBSTACLE_AVOIDANCE_MIN_SLOW_DOWN_DISTANCE,
-                            self.OBSTACLE_AVOIDANCE_MAX_SLOW_DOWN_DISTANCE,
-                        ],
-                        [self.OBSTACLE_AVOIDANCE_MIN_SLOW_DOWN_FACTOR, 1],
-                    )
+        # Slow down if close to obstacle
+        if self.closest_distance < self.OBSTACLE_AVOIDANCE_MAX_SLOW_DOWN_DISTANCE:
+            drive_speed *= float(
+                np.interp(
+                    self.closest_distance,
+                    [
+                        self.OBSTACLE_AVOIDANCE_MIN_SLOW_DOWN_DISTANCE,
+                        self.OBSTACLE_AVOIDANCE_MAX_SLOW_DOWN_DISTANCE,
+                    ],
+                    [self.OBSTACLE_AVOIDANCE_MIN_SLOW_DOWN_FACTOR, 1],
                 )
+            )
 
-            # Send speed
-            self.send_speed(drive_speed, turn_speed)
+        # Send speed
+        self.send_speed(drive_speed, turn_speed)
 
 def main(): 
     rclpy.init()
     pure_pursuit = PurePursuit()
-    pure_pursuit.run()
+    rclpy.spin(pure_pursuit)
     pure_pursuit.destroy_node()
     rclpy.shutdown()
 
