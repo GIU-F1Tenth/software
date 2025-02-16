@@ -82,7 +82,9 @@ class FrontierExploration(Node):
         self.no_path_found_counter = 0
         self.no_frontiers_found_counter = 0
         self.is_finished_exploring = False
-        self.rate = self.create_rate(20) # self.get_parameter("rate").value or 20
+        self.rate = 20 # self.get_parameter("rate").value or 20
+        self.timer = self.create_timer(1/self.rate, self.run)
+        self.get_logger().info("Frontier exploration node started")
 
     def update_odometry(self, msg: "Union[Odometry, None]" = None):
         """
@@ -276,43 +278,34 @@ class FrontierExploration(Node):
             self.no_path_found_counter += 1
             self.check_if_finished_exploring()
 
-    def run(self):
-        self.get_logger().info("Frontier exploration node started")
-        
-        while rclpy.ok():
-            rclpy.spin_once(self) 
-                       
-            if self.pose is None or self.map is None:
-                continue
-            
-            self.get_logger().info("Exploring frontiers")
-            # Get the start position of the robot
-            start = PathPlanner.world_to_grid(self.map, self.pose.position)
+    def run(self):    
+        if self.pose is None or self.map is None:
+            return
 
-            # Get frontiers
-            frontier_list, frontier_cells = FrontierSearch.search(
-                self.map, start, self.is_in_debug_mode
+        # Get the start position of the robot
+        start = PathPlanner.world_to_grid(self.map, self.pose.position)
+
+        # Get frontiers
+        frontier_list, frontier_cells = FrontierSearch.search(
+            self.map, start, self.is_in_debug_mode
+        )
+
+        if frontier_list is None:
+            return
+
+        # Publish frontier cells if in debug mode
+        if self.is_in_debug_mode:
+            self.frontier_cells_pub.publish(
+                PathPlanner.get_grid_cells(self.map, frontier_cells)
             )
 
-            if frontier_list is None:
-                continue
-
-            # Publish frontier cells if in debug mode
-            if self.is_in_debug_mode:
-                self.frontier_cells_pub.publish(
-                    PathPlanner.get_grid_cells(self.map, frontier_cells)
-                )
-
-            self.explore_frontier(frontier_list)
-
-            self.rate.sleep()
+        self.explore_frontier(frontier_list)
             
-        self.get_logger().info("Frontier exploration node stopped")
-
+    
 def main(): 
     rclpy.init()
     frontier_exploration = FrontierExploration()
-    frontier_exploration.run()
+    rclpy.spin(frontier_exploration)
     frontier_exploration.destroy_node()
     rclpy.shutdown()
 
