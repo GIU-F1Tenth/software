@@ -25,11 +25,13 @@ class LidarPublisher(Node):
         
         # Set up the serial connection to the LiDAR (update port if needed)
         # Opens a serial connection to the Hokuyo LiDAR sensor
-                                     #USB PORT
+                                    #USB PORT
         self.lidar = serial.Serial('/dev/ttyUSB0', baudrate=115200, timeout=1.0)
 
         # Create a timer to publish LiDAR data
-        self.timer = self.create_timer(0.1, self.publish_scan) # Runs publish_scan() every 0.1 seconds (10 Hz)
+        # self.timer = self.create_timer(0.1, self.publish_scan) # Runs publish_scan() every 0.1 seconds (10 Hz)
+        # Change this line in LidarPublisher __init__:
+        self.timer = self.create_timer(0.1, self.publish_scan_mock)  # Use mock data
 
     def publish_scan_mock(self):
         try:
