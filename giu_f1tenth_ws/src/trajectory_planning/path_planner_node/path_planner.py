@@ -11,6 +11,11 @@ from queue import PriorityQueue
 
 DIRECTIONS_OF_4 = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 DIRECTIONS_OF_8 = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+WALKABLE_THRESHOLD = 50
+PADDING = 5  # The number of cells around the obstacles
+COST_MAP_WEIGHT = 1000
+MIN_PATH_LENGTH = 12  # Prevent paths that are too short
+POSES_TO_TRUNCATE = 8   # Truncate the last few poses of the path
 
 def quaternion_from_euler(roll, pitch, yaw):
     """
@@ -36,6 +41,8 @@ def quaternion_from_euler(roll, pitch, yaw):
 
 class PathPlanner:
 
+    
+    
     @staticmethod
     def grid_to_index(mapdata: OccupancyGrid, p: "tuple[int, int]") -> int:
         """
@@ -146,7 +153,6 @@ class PathPlanner:
         if not PathPlanner.is_cell_in_bounds(mapdata, p):
             return False
 
-        WALKABLE_THRESHOLD = 50
         return PathPlanner.get_cell_value(mapdata, p) < WALKABLE_THRESHOLD
 
     @staticmethod
@@ -252,7 +258,6 @@ class PathPlanner:
         :param mapdata [OccupancyGrid] The map data.
         :return        [OccupancyGrid] The C-Space.
         """
-        PADDING = 5  # The number of cells around the obstacles
 
         # Create numpy grid from mapdata
         width = mapdata.info.width
@@ -457,7 +462,6 @@ class PathPlanner:
         start: "tuple[int, int]",
         goal: "tuple[int, int]",
     ) -> "tuple[Union[list[tuple[int, int]], None], Union[float, None], tuple[int, int], tuple[int, int]]":
-        COST_MAP_WEIGHT = 1000
 
         # If the start cell is not walkable, get the first walkable neighbor instead
         if not PathPlanner.is_cell_walkable(mapdata, start):
@@ -512,13 +516,11 @@ class PathPlanner:
             else:
                 return (None, None, start, goal)
 
-        # Prevent paths that are too short
-        MIN_PATH_LENGTH = 12
+
         if len(path) < MIN_PATH_LENGTH:
             return (None, None, start, goal)
 
-        # Truncate the last few poses of the path
-        POSES_TO_TRUNCATE = 8
+      
         path = path[:-POSES_TO_TRUNCATE]
 
         return (path, distance_cost_so_far[goal], start, goal)

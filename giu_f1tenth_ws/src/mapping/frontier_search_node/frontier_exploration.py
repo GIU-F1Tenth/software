@@ -55,17 +55,17 @@ class FrontierExploration(Node):
 
         if self.is_in_debug_mode:
             self.frontier_cells_pub = self.create_publisher(
-                GridCells, "/frontier_exploration/frontier_cells", 10
+                GridCells, self.get_parameter('frontier_cells_publisher'), 10
             )
             self.start_pub = self.create_publisher(
-                GridCells, "/frontier_exploration/start", 10
+                GridCells, self.get_parameter('frontier_start_publisher'), 10
             )
             self.goal_pub = self.create_publisher(
-                GridCells, "/frontier_exploration/goal", 10
+                GridCells, self.get_parameter('frontier_goal_publisher'), 10
             )
-            self.cspace_pub = self.create_publisher(GridCells, "/cspace", 10)
+            self.cspace_pub = self.create_publisher(GridCells, self.get_parameter('cspace_publisher'), 10)
             self.cost_map_pub = self.create_publisher(
-                OccupancyGrid, "/cost_map", 10
+                OccupancyGrid, self.get_parameter('cost_map_publisher'), 10
             )
 
         # Subscribers
@@ -78,11 +78,11 @@ class FrontierExploration(Node):
         self.pose = None
         self.map = None
 
-        self.NUM_EXPLORE_FAILS_BEFORE_FINISH = 30
+        self.NUM_EXPLORE_FAILS_BEFORE_FINISH = self.get_parameter('num_explore_fails_before_finish').value or 5
         self.no_path_found_counter = 0
         self.no_frontiers_found_counter = 0
         self.is_finished_exploring = False
-        self.rate = 1 / 10 # self.get_parameter("rate").value or 20
+        self.rate = self.get_parameter("rate").value
         self.timer = self.create_timer(1/self.rate, self.run)
         self.get_logger().info("Frontier exploration node started")
 
@@ -201,8 +201,8 @@ class FrontierExploration(Node):
         else:
             self.no_frontiers_found_counter = 0
 
-        A_STAR_COST_WEIGHT = 10.0
-        FRONTIER_SIZE_COST_WEIGHT = 1.0
+        A_STAR_COST_WEIGHT = self.get_parameter("a_star_cost_weight").value or 1.0
+        FRONTIER_SIZE_COST_WEIGHT = self.get_parameter("frontier_size_cost_weight").value or 1.0
 
         # Calculate the C-space
         cspace, cspace_cells = PathPlanner.calc_cspace(self.map, self.is_in_debug_mode)
@@ -222,7 +222,7 @@ class FrontierExploration(Node):
         best_path = None
 
         # Check only the top frontiers in terms of size
-        MAX_NUM_FRONTIERS_TO_CHECK = 8
+        MAX_NUM_FRONTIERS_TO_CHECK = self.get_parameter("max_num_frontiers_to_check").value or 5
         top_frontiers = FrontierExploration.get_top_frontiers(
             frontiers, MAX_NUM_FRONTIERS_TO_CHECK
         )

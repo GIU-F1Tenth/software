@@ -51,41 +51,41 @@ class PurePursuit(Node):
         # Publishers
         self.cmd_vel: Publisher = self.create_publisher(Twist, "/cmd_vel", 10)
         self.lookahead_pub: Publisher = self.create_publisher(
-            PointStamped, "/pure_pursuit/lookahead", 10
+            PointStamped, self.get_parameter('pure_pursuit_lookahed_publisher'), 10
         )
 
         if self.is_in_debug_mode:
             self.fov_cells_pub: Publisher = self.create_publisher(
-                GridCells, "/pure_pursuit/fov_cells", 100
+                GridCells, self.get_parameter('pure_pursuit_fov_cells_publisher'), 100
             )
             self.close_wall_cells_pub: Publisher = self.create_publisher(
-                GridCells, "/pure_pursuit/close_wall_cells", 100
+                GridCells, self.get_parameter('pure_pursuit_close_wall_cells_publisher'), 100
             )
 
         # Subscribers
         self.create_subscription(Odometry, "/odom", self.update_odometry, 10)
         self.create_subscription(OccupancyGrid, "/map", self.update_map, 10)
-        self.create_subscription(Path, "/pure_pursuit/path", self.update_path, 10)
-        self.create_subscription(Bool, "/pure_pursuit/enabled", self.update_enabled, 10)
+        self.create_subscription(Path, self.get_parameter('pure_pursuit_path_subscriber'), self.update_path, 10)
+        self.create_subscription(Bool, self.get_parameter('pure_pursuit_enabled'), self.update_enabled, 10)
 
         # Pure pursuit parameters
-        self.LOOKAHEAD_DISTANCE = 0.18  # m
-        self.WHEEL_BASE = 0.16  # m
-        self.MAX_DRIVE_SPEED = 0.1  # m/s
-        self.MAX_TURN_SPEED = 1.25  # rad/s
-        self.TURN_SPEED_KP = 1.25
-        self.DISTANCE_TOLERANCE = 0.1  # m
+        self.LOOKAHEAD_DISTANCE = self.get_parameter('pure_pursuit_lookahead_distance').get_parameter_value().double_value  # m
+        self.WHEEL_BASE = self.get_parameter('pure_pursuit_wheel_base').get_parameter_value().double_value  # m
+        self.MAX_DRIVE_SPEED = self.get_parameter('pure_pursuit_max_drive_speed').get_parameter_value().double_value  # m/s
+        self.MAX_TURN_SPEED = self.get_parameter('pure_pursuit_max_turn_speed').get_parameter_value().double_value  # rad/s
+        self.TURN_SPEED_KP = self.get_parameter('pure_pursuit_turn_speed_kp').get_parameter_value().double_value
+        self.DISTANCE_TOLERANCE = self.get_parameter('pure_pursuit_distance_tolerance').get_parameter_value().double_value  # m
 
         # Obstacle avoidance parameters
-        self.OBSTACLE_AVOIDANCE_GAIN = 0.3
-        self.OBSTACLE_AVOIDANCE_MAX_SLOW_DOWN_DISTANCE = 0.16  # m
-        self.OBSTACLE_AVOIDANCE_MIN_SLOW_DOWN_DISTANCE = 0.12  # m
-        self.OBSTACLE_AVOIDANCE_MIN_SLOW_DOWN_FACTOR = 0.25
-        self.FOV = 200  # degrees
-        self.FOV_DISTANCE = 25  # Number of grid cells
-        self.FOV_DEADZONE = 80  # degrees
-        self.SMALL_FOV = 300  # degrees
-        self.SMALL_FOV_DISTANCE = 10  # Number of grid cells
+        self.OBSTACLE_AVOIDANCE_GAIN = self.get_parameter('pure_pursuit_obstacle_avoidance_gain').get_parameter_value().double_value
+        self.OBSTACLE_AVOIDANCE_MAX_SLOW_DOWN_DISTANCE = self.get_parameter('pure_pursuit_obstacle_avoidance_max_slow_down_distance').get_parameter_value().double_value  # m
+        self.OBSTACLE_AVOIDANCE_MIN_SLOW_DOWN_DISTANCE = self.get_parameter('pure_pursuit_obstacle_avoidance_min_slow_down_distance').get_parameter_value().double_value  # m
+        self.OBSTACLE_AVOIDANCE_MIN_SLOW_DOWN_FACTOR = self.get_parameter('pure_pursuit_obstacle_avoidance_min_slow_down_factor').get_parameter_value().double_value
+        self.FOV = self.get_parameter('pure_pursuit_fov').get_parameter_value().double_value  # degrees
+        self.FOV_DISTANCE = self.get_parameter('pure_pursuit_fov_distance').get_parameter_value().integer_value  # Number of grid cells
+        self.FOV_DEADZONE = self.get_parameter('pure_pursuit_fov_deadzone').get_parameter_value().double_value  # degrees
+        self.SMALL_FOV = self.get_parameter('pure_pursuit_small_fov').get_parameter_value().double_value  # degrees
+        self.SMALL_FOV_DISTANCE = self.get_parameter('pure_pursuit_small_fov_distance').get_parameter_value().integer_value  # Number of grid cells
 
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
