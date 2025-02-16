@@ -14,7 +14,7 @@ from .frontier_search import FrontierSearch
 from nav_msgs.msg import OccupancyGrid, Path, GridCells, Odometry
 from geometry_msgs.msg import Pose, Point, Quaternion
 from giu_f1tenth_messages.msg import FrontierList
-from tf2_ros import TransformListener
+from tf2_ros import TransformListener, Buffer
 
 def euler_from_quaternion(quaternion):
     """
@@ -22,10 +22,10 @@ def euler_from_quaternion(quaternion):
     quaternion = [x, y, z, w]
     Bellow should be replaced when porting for ROS 2 Python tf_conversions is done.
     """
-    x = quaternion.x
-    y = quaternion.y
-    z = quaternion.z
-    w = quaternion.w
+    x = quaternion[0]
+    y = quaternion[1]
+    z = quaternion[2]
+    w = quaternion[3]
 
     sinr_cosp = 2 * (w * x + y * z)
     cosr_cosp = 1 - 2 * (x * x + y * y)
@@ -50,29 +50,30 @@ class FrontierExploration(Node):
 
         # Publishers
         self.pure_pursuit_pub = self.create_publisher(
-            "/pure_pursuit/path", Path, 10
+            Path, "/pure_pursuit/path", 10
         )
 
         if self.is_in_debug_mode:
             self.frontier_cells_pub = self.create_publisher(
-                "/frontier_exploration/frontier_cells", GridCells, 10
+                GridCells, "/frontier_exploration/frontier_cells", 10
             )
             self.start_pub = self.create_publisher(
-                "/frontier_exploration/start", GridCells, 10
+                GridCells, "/frontier_exploration/start", 10
             )
             self.goal_pub = self.create_publisher(
-                "/frontier_exploration/goal", GridCells, 10
+                GridCells, "/frontier_exploration/goal", 10
             )
-            self.cspace_pub = self.create_publisher("/cspace", GridCells, 10)
+            self.cspace_pub = self.create_publisher(GridCells, "/cspace", 10)
             self.cost_map_pub = self.create_publisher(
-                "/cost_map", OccupancyGrid, 10
+                OccupancyGrid, "/cost_map", 10
             )
 
         # Subscribers
-        self.create_subscription("/odom", Odometry, self.update_odometry)
-        self.create_subscription("/map", OccupancyGrid, self.update_map)
+        self.create_subscription(Odometry, "/odom", self.update_odometry, 10)
+        self.create_subscription(OccupancyGrid, "/map", self.update_map, 10)
 
-        self.tf_listener = TransformListener()
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
         self.lock = threading.Lock()
         self.pose = None
         self.map = None
@@ -81,22 +82,26 @@ class FrontierExploration(Node):
         self.no_path_found_counter = 0
         self.no_frontiers_found_counter = 0
         self.is_finished_exploring = False
-        self.rate = 20 # self.get_parameter("rate").value or 20
+        self.rate = self.create_rate(20) # self.get_parameter("rate").value or 20
 
     def update_odometry(self, msg: "Union[Odometry, None]" = None):
         """
         Updates the current pose of the robot.
         """
         try:
-            (trans, rot) = self.tf_listener.lookupTransform(
-                "/map", "/base_footprint", self.Time(0)
-            )
+            now = rclpy.time.Time()
+            trans = self.tf_buffer.lookup_transform(
+                "map", "base_footprint", now
+            ).transform.translation
+            rot = self.tf_buffer.lookup_transform(
+                "map", "base_footprint", now
+            ).transform.rotation
         except:
             return
 
         self.pose = Pose(
-            position=Point(x=trans[0], y=trans[1]),
-            orientation=Quaternion(x=rot[0], y=rot[1], z=rot[2], w=rot[3]),
+            position=Point(x=trans.x, y=trans.y),
+            orientation=Quaternion(x=rot.x, y=rot.y, z=rot.z, w=rot.w),
         )
 
     def update_map(self, msg: OccupancyGrid):
@@ -123,7 +128,7 @@ class FrontierExploration(Node):
         self.update_odometry()
 
         if self.pose is None:
-            self.logerr("Failed to get pose")
+            self.get_logger().error("Failed to get pose")
             return
 
         # Save the robot's position and orientation
@@ -173,9 +178,9 @@ class FrontierExploration(Node):
             self.no_frontiers_found_counter >= self.NUM_EXPLORE_FAILS_BEFORE_FINISH
             or self.no_path_found_counter >= self.NUM_EXPLORE_FAILS_BEFORE_FINISH
         ):
-            self.get_logger().log("Done exploring!")
+            self.get_logger().info("Done exploring!")
             self.save_map()
-            self.get_logger().log("Saved map")
+            self.get_logger().info("Saved map")
             self.is_finished_exploring = True
 
     def explore_frontier(self, frontier_list: FrontierList):
@@ -187,7 +192,7 @@ class FrontierExploration(Node):
 
         # If no frontiers are found, check if finished exploring
         if not frontiers:
-            self.get_logger().log("No frontiers")
+            self.get_logger().info("No frontiers")
             self.no_frontiers_found_counter += 1
             self.check_if_finished_exploring()
             return
@@ -224,7 +229,7 @@ class FrontierExploration(Node):
         goals = []
 
         # Log how many frontiers are being explored
-        self.get_logger().log(f"Exploring {len(top_frontiers)} frontiers")
+        self.get_logger().info(f"Exploring {len(top_frontiers)} frontiers")
 
         for frontier in top_frontiers:
             # Get goal
@@ -260,23 +265,27 @@ class FrontierExploration(Node):
 
         # If a path was found, publish it
         if best_path:
-            self.get_logger().log(f"Found best path with cost {lowest_cost}")
+            self.get_logger().info(f"Found best path with cost {lowest_cost}")
             start = best_path[0]
             path = PathPlanner.path_to_message(self.map, best_path)
             self.pure_pursuit_pub.publish(path)
             self.no_path_found_counter = 0
         # If no path was found, check if finished exploring
         else:
-            self.get_logger().log("No paths found")
+            self.get_logger().info("No paths found")
             self.no_path_found_counter += 1
             self.check_if_finished_exploring()
 
     def run(self):
-        rate = self.create_rate(self.rate)  # 20 Hz
+        self.get_logger().info("Frontier exploration node started")
+        
         while rclpy.ok():
+            rclpy.spin_once(self) 
+                       
             if self.pose is None or self.map is None:
                 continue
-
+            
+            self.get_logger().info("Exploring frontiers")
             # Get the start position of the robot
             start = PathPlanner.world_to_grid(self.map, self.pose.position)
 
@@ -296,12 +305,15 @@ class FrontierExploration(Node):
 
             self.explore_frontier(frontier_list)
 
-            rate.sleep()
+            self.rate.sleep()
+            
+        self.get_logger().info("Frontier exploration node stopped")
 
 def main(): 
     rclpy.init()
     frontier_exploration = FrontierExploration()
     frontier_exploration.run()
+    frontier_exploration.destroy_node()
     rclpy.shutdown()
 
 if __name__ == "__main__":

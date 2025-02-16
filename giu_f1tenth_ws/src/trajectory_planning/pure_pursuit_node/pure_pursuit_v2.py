@@ -2,6 +2,7 @@
 
 import math
 import rclpy
+import rclpy.time
 import numpy as np
 from rclpy.node import Node, Publisher
 from path_planner_node.path_planner import PathPlanner
@@ -9,7 +10,7 @@ import rclpy.subscription
 from std_msgs.msg import Header, Bool
 from nav_msgs.msg import Path, Odometry, GridCells, OccupancyGrid
 from geometry_msgs.msg import Point, PointStamped, Twist, Vector3, Pose, Quaternion
-from tf2_ros import TransformListener
+from tf2_ros import TransformListener, Buffer
 
 def euler_from_quaternion(quaternion):
     """
@@ -17,10 +18,10 @@ def euler_from_quaternion(quaternion):
     quaternion = [x, y, z, w]
     Bellow should be replaced when porting for ROS 2 Python tf_conversions is done.
     """
-    x = quaternion.x
-    y = quaternion.y
-    z = quaternion.z
-    w = quaternion.w
+    x = quaternion[0]
+    y = quaternion[1]
+    z = quaternion[2]
+    w = quaternion[3]
 
     sinr_cosp = 2 * (w * x + y * z)
     cosr_cosp = 1 - 2 * (x * x + y * y)
@@ -48,24 +49,24 @@ class PurePursuit(Node):
         )
 
         # Publishers
-        self.cmd_vel: Publisher = self.create_publisher("/cmd_vel", Twist, 10)
+        self.cmd_vel: Publisher = self.create_publisher(Twist, "/cmd_vel", 10)
         self.lookahead_pub: Publisher = self.create_publisher(
-            "/pure_pursuit/lookahead", PointStamped, 10
+            PointStamped, "/pure_pursuit/lookahead", 10
         )
 
         if self.is_in_debug_mode:
             self.fov_cells_pub: Publisher = self.create_publisher(
-                "/pure_pursuit/fov_cells", GridCells, 100
+                GridCells, "/pure_pursuit/fov_cells", 100
             )
             self.close_wall_cells_pub: Publisher = self.create_publisher(
-                "/pure_pursuit/close_wall_cells", GridCells, 100
+                GridCells, "/pure_pursuit/close_wall_cells", 100
             )
 
         # Subscribers
-        self.create_subscription("/odom", Odometry, self.update_odometry)
-        self.create_subscription("/map", OccupancyGrid, self.update_map)
-        self.create_subscription("/pure_pursuit/path", Path, self.update_path)
-        self.create_subscription("/pure_pursuit/enabled", Bool, self.update_enabled)
+        self.create_subscription(Odometry, "/odom", self.update_odometry, 10)
+        self.create_subscription(OccupancyGrid, "/map", self.update_map, 10)
+        self.create_subscription(Path, "/pure_pursuit/path", self.update_path, 10)
+        self.create_subscription(Bool, "/pure_pursuit/enabled", self.update_enabled, 10)
 
         # Pure pursuit parameters
         self.LOOKAHEAD_DISTANCE = 0.18  # m
@@ -86,7 +87,8 @@ class PurePursuit(Node):
         self.SMALL_FOV = 300  # degrees
         self.SMALL_FOV_DISTANCE = 10  # Number of grid cells
 
-        self.tf_listener = TransformListener()
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
         self.pose = None
         self.map = None
         self.path = Path()
@@ -100,9 +102,12 @@ class PurePursuit(Node):
         Updates the current pose of the robot.
         """
         try:
-            (trans, rot) = self.tf_listener.lookupTransform(
-                "/map", "/base_footprint", rclpy.Time(0)
+            now = rclpy.time.Time()
+            transform = self.tf_buffer.lookup_transform(
+                "map", "base_footprint", now
             )
+            trans = (transform.transform.translation.x, transform.transform.translation.y, transform.transform.translation.z)
+            rot = (transform.transform.rotation.x, transform.transform.rotation.y, transform.transform.rotation.z, transform.transform.rotation.w)
         except:
             return
 
@@ -278,13 +283,13 @@ class PurePursuit(Node):
         self.cmd_vel.publish(twist)
 
     def stop(self):
-        self.send_speed(0, 0)
+        self.send_speed(0.0, 0.0)
 
     def run(self):
         self.get_logger().info("Pure pursuit node started")
-        rclpy.sleep(5)
-
-        while not rclpy.is_shutdown():
+        
+        while rclpy.ok():
+            rclpy.spin_once(self)
             if self.pose is None:
                 continue
 
@@ -369,6 +374,7 @@ def main():
     rclpy.init()
     pure_pursuit = PurePursuit()
     pure_pursuit.run()
+    pure_pursuit.destroy_node()
     rclpy.shutdown()
 
 if __name__ == "__main__":

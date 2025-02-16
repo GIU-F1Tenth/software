@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import rclpy
 import math
 import cv2
 import numpy as np
@@ -77,7 +76,7 @@ class PathPlanner:
         """
         x = (p[0] + 0.5) * mapdata.info.resolution + mapdata.info.origin.position.x
         y = (p[1] + 0.5) * mapdata.info.resolution + mapdata.info.origin.position.y
-        return Point(x, y, 0)
+        return Point(x=x, y=y, z=0.0)
 
     @staticmethod
     def world_to_grid(mapdata: OccupancyGrid, wp: Point) -> "tuple[int, int]":
@@ -115,7 +114,7 @@ class PathPlanner:
                     header=Header(frame_id="map"),
                     pose=Pose(
                         position=PathPlanner.grid_to_world(mapdata, cell),
-                        orientation=Quaternion(q[0], q[1], q[2], q[3]),
+                        orientation=Quaternion(x=q[0], y=q[1], z=q[2], w=q[3]),
                     ),
                 )
             )
@@ -274,7 +273,7 @@ class PathPlanner:
         kernel = np.ones((PADDING, PADDING), np.uint8)
         obstacle_mask = cv2.dilate(map, kernel, iterations=1)
         cspace_data = cv2.bitwise_or(obstacle_mask, unknown_area_mask)
-        cspace_data = np.array(cspace_data).reshape(width * height).tolist()
+        cspace_data = np.array(cspace_data).astype(np.int8).reshape(width * height).tolist()
 
         # Return the C-space
         cspace = OccupancyGrid(
@@ -311,8 +310,6 @@ class PathPlanner:
 
     @staticmethod
     def calc_cost_map(mapdata: OccupancyGrid) -> np.ndarray:
-        rclpy.loginfo("Calculating cost map")
-
         # Create numpy array from mapdata
         width = mapdata.info.width
         height = mapdata.info.height
