@@ -82,7 +82,7 @@ class FrontierExploration(Node):
         self.no_path_found_counter = 0
         self.no_frontiers_found_counter = 0
         self.is_finished_exploring = False
-        self.rate = 20 # self.get_parameter("rate").value or 20
+        self.rate = 1 / 10 # self.get_parameter("rate").value or 20
         self.timer = self.create_timer(1/self.rate, self.run)
         self.get_logger().info("Frontier exploration node started")
 
