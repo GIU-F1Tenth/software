@@ -23,8 +23,8 @@ setup(
     license='Apache-2.0',
     entry_points={
         'console_scripts': [
-            'lidar_pub = sensing.lidar_publisher.lidar_pub:main',
-            'lidar_objdet = sensing.lidar_subscriber.lidar_objdet:main',
+            'lidar_pub = lidar_publisher.lidar_pub:main',
+            'lidar_subscriber = lidar_subscriber.lidar_subscriber:main',
         ],
     },
 )
