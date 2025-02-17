@@ -6,7 +6,7 @@ package_name = 'sensing'
 
 setup(
     name=package_name,
-    version='0.0.0',
+    version='0.1.0',
     packages=find_packages(),
     data_files=[
         ('share/ament_index/resource_index/packages',
@@ -17,8 +17,8 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='Your Name',
-    maintainer_email='your_email@example.com',
+    maintainer='Salma Tarek Soliman',
+    maintainer_email='salmaaburahma@gmail.com',
     description='F1TENTH sensing package',
     license='Apache-2.0',
     entry_points={

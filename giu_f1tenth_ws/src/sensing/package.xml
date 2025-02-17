@@ -2,9 +2,9 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>sensing</name>
-  <version>0.0.0</version>
+  <version>0.1.0</version>
   <description>F1TENTH sensing package</description>
-  <maintainer email="your_email@example.com">Your Name</maintainer>
+  <maintainer email="salmaaburahma@gmail.com">Salma Tarek Soliman</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_python</buildtool_depend>
