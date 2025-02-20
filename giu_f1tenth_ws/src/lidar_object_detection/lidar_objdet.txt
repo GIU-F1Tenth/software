@@ -1,1 +1,0 @@
-The lidar_objdet.py could be moved here instead of in the sensing package.
