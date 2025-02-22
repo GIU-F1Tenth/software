@@ -4,7 +4,7 @@ package_name = 'mapping'
 
 setup(
     name=package_name,
-    version='0.0.1',
+    version='0.2.1',
     packages=find_packages(exclude=['test']),
     data_files=[
         ('share/ament_index/resource_index/packages',
@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'mapping_node = frontier_search_node.frontier_exploration:main',
         ],
     },
 )
