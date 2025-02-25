@@ -16,3 +16,7 @@
 [submodule "src/giu_f1t_utils"]
 	path = src/giu_f1t_utils
 	url = https://github.com/GIU-F1Tenth/giu_f1t_utils
+[submodule "src/perception/obj_detection"]
+	path = src/perception/obj_detection
+	url = https://github.com/GIU-F1Tenth/obj_detection
+
