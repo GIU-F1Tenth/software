@@ -7,3 +7,9 @@
 [submodule "src/control/mpc_controller"]
 	path = src/control/mpc_controller
 	url = https://github.com/GIU-F1Tenth/mpc_controller
+[submodule "src/giu_f1t_bringup"]
+	path = src/giu_f1t_bringup
+	url = https://github.com/GIU-F1Tenth/giu_f1t_bringup
+[submodule "giu_f1t_interfaces"]
+	path = giu_f1t_interfaces
+	url = https://github.com/GIU-F1Tenth/giu_f1t_interfaces
