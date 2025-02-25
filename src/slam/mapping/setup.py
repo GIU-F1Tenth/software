@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'mapping_node = frontier_search_node.frontier_exploration:main',
+            'remapper_node = remapper.remapper_node:main',
         ],
     },
 )

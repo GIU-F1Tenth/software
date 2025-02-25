@@ -13,8 +13,9 @@ from path_planner_node.path_planner import PathPlanner
 from .frontier_search import FrontierSearch
 from nav_msgs.msg import OccupancyGrid, Path, GridCells, Odometry
 from geometry_msgs.msg import Pose, Point, Quaternion
-from giu_f1tenth_messages.msg import FrontierList
+from giu_f1t_interfaces.msg import FrontierList
 from tf2_ros import TransformListener, Buffer
+
 
 def euler_from_quaternion(quaternion):
     """
@@ -39,13 +40,31 @@ def euler_from_quaternion(quaternion):
     yaw = np.arctan2(siny_cosp, cosy_cosp)
 
     return roll, pitch, yaw
+
+
 class FrontierExploration(Node):
     def __init__(self):
         super().__init__(node_name="frontier_exploration")
 
+        self.declare_parameter('~debug', 'false')
+        self.declare_parameter('frontier_cells_publisher',
+                               '/frontier_exploration/frontier_cells')
+        self.declare_parameter('frontier_start_publisher',
+                               '/frontier_exploration/start')
+        self.declare_parameter('frontier_goal_publisher',
+                               "/frontier_exploration/goal")
+        self.declare_parameter('cspace_publisher', '/cspace')
+        self.declare_parameter('cost_map_publisher', '/cost_map')
+        self.declare_parameter('num_explore_fails_before_finish', 5)
+        self.declare_parameter('rate', 1.0)
+        self.declare_parameter('a_star_cost_weight', 10.0)
+        self.declare_parameter('frontier_size_cost_weight', 1.0)
+        self.declare_parameter('max_num_frontiers_to_check', 8)
+
         # Set if in debug mode
         self.is_in_debug_mode = (
-            self.has_parameter("~debug") and self.get_parameter("~debug") == "true"
+            self.has_parameter("~debug") and self.get_parameter(
+                "~debug") == "true"
         )
 
         # Publishers
@@ -63,13 +82,15 @@ class FrontierExploration(Node):
             self.goal_pub = self.create_publisher(
                 GridCells, self.get_parameter('frontier_goal_publisher'), 10
             )
-            self.cspace_pub = self.create_publisher(GridCells, self.get_parameter('cspace_publisher'), 10)
+            self.cspace_pub = self.create_publisher(
+                GridCells, self.get_parameter('cspace_publisher'), 10)
             self.cost_map_pub = self.create_publisher(
                 OccupancyGrid, self.get_parameter('cost_map_publisher'), 10
             )
 
         # Subscribers
-        self.create_subscription(Odometry, "/odom", self.update_odometry, 10)
+        self.create_subscription(
+            Odometry, "/ego_racecar/odom", self.update_odometry, 10)
         self.create_subscription(OccupancyGrid, "/map", self.update_map, 10)
 
         self.tf_buffer = Buffer()
@@ -78,7 +99,8 @@ class FrontierExploration(Node):
         self.pose = None
         self.map = None
 
-        self.NUM_EXPLORE_FAILS_BEFORE_FINISH = self.get_parameter('num_explore_fails_before_finish').value or 5
+        self.NUM_EXPLORE_FAILS_BEFORE_FINISH = self.get_parameter(
+            'num_explore_fails_before_finish').value or 5
         self.no_path_found_counter = 0
         self.no_frontiers_found_counter = 0
         self.is_finished_exploring = False
@@ -140,7 +162,8 @@ class FrontierExploration(Node):
             [orientation.x, orientation.y, orientation.z, orientation.w]
         )
         with open(os.path.join(package_path, "map/pose.txt"), "w") as f:
-            f.write(f"{position.x} {position.y} {position.z} {yaw} {pitch} {roll}\n")
+            f.write(
+                f"{position.x} {position.y} {position.z} {yaw} {pitch} {roll}\n")
 
     @staticmethod
     def get_top_frontiers(frontiers, n):
@@ -163,7 +186,8 @@ class FrontierExploration(Node):
         grid.info.origin = mapdata.info.origin
 
         # Normalize the cost map to the range [0, 100] and convert it to integers
-        cost_map_normalized = (cost_map / np.max(cost_map) * 100).astype(np.int8)
+        cost_map_normalized = (
+            cost_map / np.max(cost_map) * 100).astype(np.int8)
 
         # Flatten the cost map and convert it to a list
         grid.data = cost_map_normalized.flatten().tolist()
@@ -201,11 +225,14 @@ class FrontierExploration(Node):
         else:
             self.no_frontiers_found_counter = 0
 
-        A_STAR_COST_WEIGHT = self.get_parameter("a_star_cost_weight").value or 1.0
-        FRONTIER_SIZE_COST_WEIGHT = self.get_parameter("frontier_size_cost_weight").value or 1.0
+        A_STAR_COST_WEIGHT = self.get_parameter(
+            "a_star_cost_weight").value or 1.0
+        FRONTIER_SIZE_COST_WEIGHT = self.get_parameter(
+            "frontier_size_cost_weight").value or 1.0
 
         # Calculate the C-space
-        cspace, cspace_cells = PathPlanner.calc_cspace(self.map, self.is_in_debug_mode)
+        cspace, cspace_cells = PathPlanner.calc_cspace(
+            self.map, self.is_in_debug_mode)
         # if cspace_cells is not None:
         #     self.cspace_pub.publish(cspace_cells)
 
@@ -222,7 +249,8 @@ class FrontierExploration(Node):
         best_path = None
 
         # Check only the top frontiers in terms of size
-        MAX_NUM_FRONTIERS_TO_CHECK = self.get_parameter("max_num_frontiers_to_check").value or 5
+        MAX_NUM_FRONTIERS_TO_CHECK = self.get_parameter(
+            "max_num_frontiers_to_check").value or 5
         top_frontiers = FrontierExploration.get_top_frontiers(
             frontiers, MAX_NUM_FRONTIERS_TO_CHECK
         )
@@ -262,7 +290,8 @@ class FrontierExploration(Node):
 
         # If in debug mode, publish the start and goal
         if self.is_in_debug_mode:
-            self.start_pub.publish(PathPlanner.get_grid_cells(self.map, starts))
+            self.start_pub.publish(
+                PathPlanner.get_grid_cells(self.map, starts))
             self.goal_pub.publish(PathPlanner.get_grid_cells(self.map, goals))
 
         # If a path was found, publish it
@@ -278,7 +307,7 @@ class FrontierExploration(Node):
             self.no_path_found_counter += 1
             self.check_if_finished_exploring()
 
-    def run(self):    
+    def run(self):
         if self.pose is None or self.map is None:
             return
 
@@ -300,14 +329,15 @@ class FrontierExploration(Node):
             )
 
         self.explore_frontier(frontier_list)
-            
-    
-def main(): 
+
+
+def main():
     rclpy.init()
     frontier_exploration = FrontierExploration()
     rclpy.spin(frontier_exploration)
     frontier_exploration.destroy_node()
     rclpy.shutdown()
+
 
 if __name__ == "__main__":
     main()

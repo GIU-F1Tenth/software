@@ -1,3 +1,9 @@
-[submodule "giu_f1tenth_ws/src/urg_node2"]
-	path = giu_f1tenth_ws/src/urg_node2
+[submodule "src/drivers/urg_node2"]
+	path = src/drivers/urg_node2
 	url = https://github.com/Hokuyo-aut/urg_node2
+[submodule "src/control/pid_controller"]
+	path = src/control/pid_controller
+	url = https://github.com/GIU-F1Tenth/pid_controller.gitsrc/control/pid_controller
+[submodule "src/control/mpc_controller"]
+	path = src/control/mpc_controller
+	url = https://github.com/GIU-F1Tenth/mpc_controller.gitsrc/control/mpc_controller

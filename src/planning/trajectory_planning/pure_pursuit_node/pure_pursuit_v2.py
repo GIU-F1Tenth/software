@@ -43,30 +43,51 @@ class PurePursuit(Node):
         """
         super().__init__("pure_pursuit")
 
+        self.declare_parameter('pure_pursuit_lookahead_publisher', "/pure_pursuit/lookahead")
+        self.declare_parameter('pure_pursuit_fov_cells_publisher', "/pure_pursuit/fov_cells")
+        self.declare_parameter('pure_pursuit_close_wall_cells_publisher', "/pure_pursuit/close_wall_cells")
+        self.declare_parameter('pure_pursuit_path_subscriber', "/pure_pursuit/path")
+        self.declare_parameter('pure_pursuit_enabled', "/pure_pursuit/enabled")
+        self.declare_parameter('pure_pursuit_lookahead_distance', 0.18)
+        self.declare_parameter('pure_pursuit_wheel_base', 0.16)
+        self.declare_parameter('pure_pursuit_max_drive_speed', 0.1)
+        self.declare_parameter('pure_pursuit_max_turn_speed', 1.25)
+        self.declare_parameter('pure_pursuit_turn_speed_kp', 1.25)
+        self.declare_parameter('pure_pursuit_distance_tolerance', 0.1)
+        self.declare_parameter('pure_pursuit_obstacle_avoidance_gain', 0.3)
+        self.declare_parameter('pure_pursuit_obstacle_avoidance_max_slow_down_distance', 0.16)
+        self.declare_parameter('pure_pursuit_obstacle_avoidance_min_slow_down_distance', 0.12)
+        self.declare_parameter('pure_pursuit_obstacle_avoidance_min_slow_down_factor', 0.25)
+        self.declare_parameter('pure_pursuit_fov', 200)
+        self.declare_parameter('pure_pursuit_fov_distance', 25)
+        self.declare_parameter('pure_pursuit_fov_deadzone', 80)
+        self.declare_parameter('pure_pursuit_small_fov', 300)
+        self.declare_parameter('pure_pursuit_small_fov_distance', 10)
+    
         # Set if in debug mode
         self.is_in_debug_mode = (
-            self.has_parameter("~debug") and self.get_parameter("~debug") == "true"
+            self.has_parameter("~debug") and self.get_parameter("~debug").value == "true"
         )
 
         # Publishers
         self.cmd_vel: Publisher = self.create_publisher(Twist, "/cmd_vel", 10)
         self.lookahead_pub: Publisher = self.create_publisher(
-            PointStamped, self.get_parameter('pure_pursuit_lookahed_publisher'), 10
+            PointStamped, self.get_parameter('pure_pursuit_lookahead_publisher').value, 10
         )
 
         if self.is_in_debug_mode:
             self.fov_cells_pub: Publisher = self.create_publisher(
-                GridCells, self.get_parameter('pure_pursuit_fov_cells_publisher'), 100
+                GridCells, self.get_parameter('pure_pursuit_fov_cells_publisher').value, 100
             )
             self.close_wall_cells_pub: Publisher = self.create_publisher(
-                GridCells, self.get_parameter('pure_pursuit_close_wall_cells_publisher'), 100
+                GridCells, self.get_parameter('pure_pursuit_close_wall_cells_publisher').value, 100
             )
 
         # Subscribers
-        self.create_subscription(Odometry, "/odom", self.update_odometry, 10)
+        self.create_subscription(Odometry, "/ego_racecar/odom", self.update_odometry, 10)
         self.create_subscription(OccupancyGrid, "/map", self.update_map, 10)
-        self.create_subscription(Path, self.get_parameter('pure_pursuit_path_subscriber'), self.update_path, 10)
-        self.create_subscription(Bool, self.get_parameter('pure_pursuit_enabled'), self.update_enabled, 10)
+        self.create_subscription(Path, self.get_parameter('pure_pursuit_path_subscriber').value, self.update_path, 10)
+        self.create_subscription(Bool, self.get_parameter('pure_pursuit_enabled').value, self.update_enabled, 10)
 
         # Pure pursuit parameters
         self.LOOKAHEAD_DISTANCE = self.get_parameter('pure_pursuit_lookahead_distance').get_parameter_value().double_value  # m
