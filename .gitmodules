@@ -40,4 +40,3 @@
 [submodule "src/planning/nav2"]
 	path = src/planning/nav2
 	url = https://github.com/GIU-F1Tenth/navigation2
-
