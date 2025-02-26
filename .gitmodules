@@ -19,4 +19,6 @@
 [submodule "src/perception/obj_detection"]
 	path = src/perception/obj_detection
 	url = https://github.com/GIU-F1Tenth/obj_detection
-
+[submodule "src/drivers/realsense-ros"]
+	path = src/drivers/realsense-ros
+	url = https://github.com/IntelRealSense/realsense-ros
