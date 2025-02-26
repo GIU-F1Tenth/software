@@ -25,3 +25,9 @@
 [submodule "src/drivers/razor-imu-ros2"]
 	path = src/drivers/razor-imu-ros2
 	url = https://github.com/airacingtech/razor-imu-ros2
+[submodule "src/planning/trajectory_planning"]
+	path = src/planning/trajectory_planning
+	url = https://github.com/GIU-F1Tenth/trajectory_planning
+[submodule "src/planning/behavioral_planning"]
+	path = src/planning/behavioral_planning
+	url = https://github.com/GIU-F1Tenth/behavioral_planning
