@@ -40,3 +40,6 @@
 [submodule "src/planning/nav2"]
 	path = src/planning/nav2
 	url = https://github.com/GIU-F1Tenth/navigation2
+[submodule "src/slam/nav2_wfe"]
+	path = src/slam/nav2_wfe
+	url = https://github.com/kaiaai/nav2_wfe.git
