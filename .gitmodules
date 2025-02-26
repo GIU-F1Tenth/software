@@ -7,15 +7,6 @@
 [submodule "src/control/mpc_controller"]
 	path = src/control/mpc_controller
 	url = https://github.com/GIU-F1Tenth/mpc_controller
-[submodule "src/giu_f1t_bringup"]
-	path = src/giu_f1t_bringup
-	url = https://github.com/GIU-F1Tenth/giu_f1t_bringup
-[submodule "src/giu_f1t_interfaces"]
-	path = src/giu_f1t_interfaces
-	url = https://github.com/GIU-F1Tenth/giu_f1t_interfaces
-[submodule "src/giu_f1t_utils"]
-	path = src/giu_f1t_utils
-	url = https://github.com/GIU-F1Tenth/giu_f1t_utils
 [submodule "src/perception/obj_detection"]
 	path = src/perception/obj_detection
 	url = https://github.com/GIU-F1Tenth/obj_detection
@@ -25,6 +16,15 @@
 [submodule "src/drivers/razor-imu-ros2"]
 	path = src/drivers/razor-imu-ros2
 	url = https://github.com/airacingtech/razor-imu-ros2
+[submodule "src/git_f1t_bringup"]
+	path = src/git_f1t_bringup
+	url = https://github.com/GIU-F1Tenth/giu_f1t_bringup
+[submodule "src/giu_f1t_utils"]
+	path = src/giu_f1t_utils
+	url = https://github.com/GIU-F1Tenth/giu_f1t_utils
+[submodule "src/giu_f1t_interfaces"]
+	path = src/giu_f1t_interfaces
+	url = https://github.com/GIU-F1Tenth/giu_f1t_interfaces
 [submodule "src/planning/trajectory_planning"]
 	path = src/planning/trajectory_planning
 	url = https://github.com/GIU-F1Tenth/trajectory_planning
