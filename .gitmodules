@@ -34,3 +34,6 @@
 [submodule "src/slam/frontier_exploration"]
 	path = src/slam/frontier_exploration
 	url = https://github.com/GIU-F1Tenth/frontier_exploration
+[submodule "src/slam/slam_toolbox"]
+	path = src/slam/slam_toolbox
+	url = https://github.com/GIU-F1Tenth/slam_toolbox
