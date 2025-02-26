@@ -22,3 +22,6 @@
 [submodule "src/drivers/realsense-ros"]
 	path = src/drivers/realsense-ros
 	url = https://github.com/IntelRealSense/realsense-ros
+[submodule "src/drivers/razor-imu-ros2"]
+	path = src/drivers/razor-imu-ros2
+	url = https://github.com/airacingtech/razor-imu-ros2
