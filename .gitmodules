@@ -3,13 +3,13 @@
 	url = https://github.com/Hokuyo-aut/urg_node2
 [submodule "src/control/pid_controller"]
 	path = src/control/pid_controller
-	url = https://github.com/GIU-F1Tenth/pid_controller
+	url = git@github.com:GIU-F1Tenth/pid_controller
 [submodule "src/control/mpc_controller"]
 	path = src/control/mpc_controller
-	url = https://github.com/GIU-F1Tenth/mpc_controller
+	url = git@github.com:GIU-F1Tenth/mpc_controller
 [submodule "src/perception/obj_detection"]
 	path = src/perception/obj_detection
-	url = https://github.com/GIU-F1Tenth/obj_detection
+	url = git@github.com:GIU-F1Tenth/obj_detection
 [submodule "src/drivers/realsense-ros"]
 	path = src/drivers/realsense-ros
 	url = https://github.com/IntelRealSense/realsense-ros
@@ -18,28 +18,28 @@
 	url = https://github.com/airacingtech/razor-imu-ros2
 [submodule "src/giu_f1t_utils"]
 	path = src/giu_f1t_utils
-	url = https://github.com/GIU-F1Tenth/giu_f1t_utils
+	url = git@github.com:GIU-F1Tenth/giu_f1t_utils
 [submodule "src/giu_f1t_interfaces"]
 	path = src/giu_f1t_interfaces
-	url = https://github.com/GIU-F1Tenth/giu_f1t_interfaces
+	url = git@github.com:GIU-F1Tenth/giu_f1t_interfaces
 [submodule "src/planning/trajectory_planning"]
 	path = src/planning/trajectory_planning
-	url = https://github.com/GIU-F1Tenth/trajectory_planning
+	url = git@github.com:GIU-F1Tenth/trajectory_planning
 [submodule "src/planning/behavioral_planning"]
 	path = src/planning/behavioral_planning
-	url = https://github.com/GIU-F1Tenth/behavioral_planning
+	url = git@github.com:GIU-F1Tenth/behavioral_planning
 [submodule "src/giu_f1t_bringup"]
 	path = src/giu_f1t_bringup
-	url = https://github.com/GIU-F1Tenth/giu_f1t_bringup
+	url = git@github.com:GIU-F1Tenth/giu_f1t_bringup
 [submodule "src/slam/frontier_exploration"]
 	path = src/slam/frontier_exploration
-	url = https://github.com/GIU-F1Tenth/frontier_exploration
+	url = git@github.com:GIU-F1Tenth/frontier_exploration
 [submodule "src/slam/slam_toolbox"]
 	path = src/slam/slam_toolbox
-	url = https://github.com/GIU-F1Tenth/slam_toolbox
+	url = git@github.com:GIU-F1Tenth/slam_toolbox
 [submodule "src/planning/nav2"]
 	path = src/planning/nav2
-	url = https://github.com/GIU-F1Tenth/navigation2
+	url = git@github.com:GIU-F1Tenth/navigation2
 [submodule "src/slam/nav2_wfe"]
 	path = src/slam/nav2_wfe
 	url = https://github.com/kaiaai/nav2_wfe.git
