@@ -1,2 +1,2 @@
 # software
-Use `. ~/ros2_humble/install/local_setup.bash` to source humble on the jetson **NOT** `. /opt/ros/hubmle/setup.bash`
+Use `docker run -it --cpus="4" --memory="8g" giu_f1t_bringup:latest`
