@@ -32,7 +32,7 @@ WORKDIR /home/ros2_ws
 COPY src src/
 
 # Install dependencies
-RUN apt-get update && rosdep install --from-paths src --ignore-src -r -y
+RUN apt-get update && rosdep init && rosdep install --from-paths src --ignore-src -r -y
 
 # Build the workspace
 RUN . /opt/ros/humble/setup.sh && colcon build
