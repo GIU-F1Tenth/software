@@ -14,7 +14,6 @@ RUN apt-get update && apt-get install -y \
     python3-numpy \
     python3-empy \
     python3-dev \
-    python3-catkin-tools \
     python3-rosinstall \
     python3-rosinstall-generator \
     python3-wstool \
