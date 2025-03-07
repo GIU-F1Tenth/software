@@ -40,9 +40,6 @@
 [submodule "src/slam/nav2_wfe"]
 	path = src/slam/nav2_wfe
 	url = https://github.com/kaiaai/nav2_wfe.git
-[submodule "src/drivers/vesc"]
-	path = src/drivers/vesc
-	url = https://github.com/f1tenth/vesc.git
 [submodule "src/git_f1t_system"]
 	path = src/git_f1t_system
 	url = git@github.com:FamALouiz/giu_f1tenth_system.git
