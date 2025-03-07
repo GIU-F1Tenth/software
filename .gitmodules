@@ -13,9 +13,6 @@
 [submodule "src/drivers/realsense-ros"]
 	path = src/drivers/realsense-ros
 	url = https://github.com/IntelRealSense/realsense-ros
-[submodule "src/drivers/razor-imu-ros2"]
-	path = src/drivers/razor-imu-ros2
-	url = https://github.com/airacingtech/razor-imu-ros2
 [submodule "src/giu_f1t_utils"]
 	path = src/giu_f1t_utils
 	url = git@github.com:GIU-F1Tenth/giu_f1t_utils
@@ -46,3 +43,6 @@
 [submodule "src/drivers/vesc"]
 	path = src/drivers/vesc
 	url = https://github.com/f1tenth/vesc.git
+[submodule "src/git_f1t_system"]
+	path = src/git_f1t_system
+	url = git@github.com:FamALouiz/giu_f1tenth_system.git
