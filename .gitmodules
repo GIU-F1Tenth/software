@@ -44,3 +44,10 @@
 	path = src/giu_f1t_system
 	url = git@github.com:GIU-F1Tenth/giu_f1t_system.git
 	branch = humble-devel
+[submodule "src/drivers/urg_node"]
+	path = src/drivers/urg_node
+	url = git@github.com:ros-drivers/urg_node.git
+[submodule "src/drivers/urg_c"]
+	path = src/drivers/urg_c
+	url = git@github.com:ros-drivers/urg_c.git
+	branch = ros2-devel
