@@ -40,7 +40,7 @@
 [submodule "src/slam/nav2_wfe"]
 	path = src/slam/nav2_wfe
 	url = https://github.com/kaiaai/nav2_wfe.git
-[submodule "src/giu_f1tenth_system"]
-	path = src/giu_f1tenth_system
-	url = git@github.com:FamALouiz/giu_f1tenth_system.git
-	branch = humble_devel
+[submodule "src/giu_f1t_system"]
+	path = src/giu_f1t_system
+	url = git@github.com:GIU-F1Tenth/giu_f1t_system.git
+	branch = humble-devel
