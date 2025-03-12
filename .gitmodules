@@ -25,18 +25,13 @@
 [submodule "src/planning/behavioral_planning"]
 	path = src/planning/behavioral_planning
 	url = git@github.com:GIU-F1Tenth/behavioral_planning
-[submodule "src/giu_f1t_bringup"]
-	path = src/giu_f1t_bringup
-	url = git@github.com:GIU-F1Tenth/giu_f1t_bringup
 [submodule "src/slam/frontier_exploration"]
 	path = src/slam/frontier_exploration
 	url = git@github.com:GIU-F1Tenth/frontier_exploration
 [submodule "src/slam/slam_toolbox"]
 	path = src/slam/slam_toolbox
-	url = git@github.com:GIU-F1Tenth/slam_toolbox
-[submodule "src/planning/nav2"]
-	path = src/planning/nav2
-	url = git@github.com:GIU-F1Tenth/navigation2
+	url = git@github.com:SteveMacenski/slam_toolbox.git
+	branch = humble
 [submodule "src/slam/nav2_wfe"]
 	path = src/slam/nav2_wfe
 	url = https://github.com/kaiaai/nav2_wfe.git
@@ -51,3 +46,7 @@
 	path = src/drivers/urg_c
 	url = git@github.com:ros-drivers/urg_c.git
 	branch = ros2-devel
+[submodule "src/planning/navigation2"]
+	path = src/planning/navigation2
+	url = git@github.com:ros-navigation/navigation2.git
+	branch = humble
