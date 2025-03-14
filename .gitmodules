@@ -50,3 +50,6 @@
 	path = src/planning/navigation2
 	url = git@github.com:ros-navigation/navigation2.git
 	branch = humble
+[submodule "src/perception/camera_obj_detection"]
+	path = src/perception/camera_obj_detection
+	url = git@github.com:TheOneAndOnlyZestro/camera_object_detection.git
