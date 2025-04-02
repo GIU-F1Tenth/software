@@ -4,9 +4,6 @@
 [submodule "src/control/pid_controller"]
 	path = src/control/pid_controller
 	url = git@github.com:GIU-F1Tenth/pid_controller
-[submodule "src/control/mpc_controller"]
-	path = src/control/mpc_controller
-	url = git@github.com:GIU-F1Tenth/mpc_controller
 [submodule "src/perception/obj_detection"]
 	path = src/perception/obj_detection
 	url = git@github.com:GIU-F1Tenth/obj_detection
@@ -54,5 +51,8 @@
 	path = src/perception/camera_obj_detection
 	url = git@github.com:TheOneAndOnlyZestro/camera_object_detection.git
 [submodule "libs/raceline-optimization"]
-	path = libs/raceline-optimization
+	path = libs/raceline-optimAdded custom gap following pluginization
 	url = git@github.com:GIU-F1Tenth/Raceline-Optimization.git
+[submodule "src/planning/gap_follower"]
+	path = src/planning/gap_follower
+	url = git@github.com:GIU-F1Tenth/gap_follower.git
