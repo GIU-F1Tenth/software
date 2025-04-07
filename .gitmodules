@@ -4,6 +4,9 @@
 [submodule "src/control/pid_controller"]
 	path = src/control/pid_controller
 	url = git@github.com:GIU-F1Tenth/pid_controller
+[submodule "src/control/mpc_controller"]
+	path = src/control/mpc_controller
+	url = git@github.com:GIU-F1Tenth/mpc_controller
 [submodule "src/perception/obj_detection"]
 	path = src/perception/obj_detection
 	url = git@github.com:GIU-F1Tenth/obj_detection
