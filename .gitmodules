@@ -56,3 +56,6 @@
 [submodule "src/planning/gap_follower"]
 	path = src/planning/gap_follower
 	url = git@github.com:GIU-F1Tenth/gap_follower.git
+[submodule "src/control/safety_node"]
+	path = src/control/safety_node
+	url = git@github.com:GIU-F1Tenth/safety_node.git
