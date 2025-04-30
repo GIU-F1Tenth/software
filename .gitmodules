@@ -51,7 +51,7 @@
 	path = src/perception/camera_obj_detection
 	url = git@github.com:TheOneAndOnlyZestro/camera_object_detection.git
 [submodule "libs/raceline-optimization"]
-	path = libs/raceline-optimAdded custom gap following pluginization
+	path = libs/raceline-optimization
 	url = git@github.com:GIU-F1Tenth/Raceline-Optimization.git
 [submodule "src/planning/gap_follower"]
 	path = src/planning/gap_follower
