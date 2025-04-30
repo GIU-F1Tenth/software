@@ -177,3 +177,7 @@ cython_debug/
 build/
 install/
 log/
+
+# Maps 
+*.pgm
+*.yaml
