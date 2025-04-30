@@ -62,3 +62,6 @@
 [submodule "src/control/safety_node"]
 	path = src/control/safety_node
 	url = git@github.com:GIU-F1Tenth/safety_node.git
+[submodule "src/planning/pure_pursuit"]
+	path = src/planning/pure_pursuit
+	url = git@github.com:GIU-F1Tenth/pure_pursuit.git
