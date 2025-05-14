@@ -28,10 +28,6 @@
 [submodule "src/slam/frontier_exploration"]
 	path = src/slam/frontier_exploration
 	url = git@github.com:GIU-F1Tenth/frontier_exploration
-[submodule "src/slam/slam_toolbox"]
-	path = src/slam/slam_toolbox
-	url = git@github.com:SteveMacenski/slam_toolbox.git
-	branch = humble
 [submodule "src/slam/nav2_wfe"]
 	path = src/slam/nav2_wfe
 	url = https://github.com/kaiaai/nav2_wfe.git
