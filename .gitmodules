@@ -61,3 +61,6 @@
 [submodule "src/planning/pure_pursuit"]
 	path = src/planning/pure_pursuit
 	url = git@github.com:GIU-F1Tenth/pure_pursuit.git
+[submodule "src/planning/behavior_tree_cpp"]
+	path = src/planning/behavior_tree_cpp
+	url = https://github.com/GIU-F1Tenth/BehaviorTree.CPP.git
