@@ -64,3 +64,6 @@
 [submodule "src/planning/behavior_tree_cpp"]
 	path = src/planning/behavior_tree_cpp
 	url = https://github.com/GIU-F1Tenth/BehaviorTree.CPP.git
+[submodule "src/control/watchdog"]
+	path = src/control/watchdog
+	url = git@github.com:GIU-F1Tenth/watchdog.git
