@@ -67,3 +67,6 @@
 [submodule "src/control/watchdog"]
 	path = src/control/watchdog
 	url = git@github.com:GIU-F1Tenth/watchdog.git
+[submodule "src/planning/giu_f1t_behavior_tree"]
+	path = src/planning/giu_f1t_behavior_tree
+	url = git@github.com:GIU-F1Tenth/giu_f1t_behavior_tree.git
