@@ -1,0 +1,11 @@
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <Fallback name="RootSelector">
+      <Sequence name="ObstacleHandling">
+        <Condition ID="IsObstacleDetected"/>
+        <Action ID="GapFollowing"/>
+      </Sequence>
+      <Action ID="PurePursuit"/>
+    </Fallback>
+  </BehaviorTree>
+</root>
