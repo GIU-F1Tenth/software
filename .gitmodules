@@ -73,3 +73,6 @@
 [submodule "src/perception/opponent_tracker"]
 	path = src/perception/opponent_tracker
 	url = git@github.com:GIU-F1Tenth/opponent_tracker.git
+[submodule "libs/frenet_optimal_trajectory_planner"]
+	path = libs/frenet_optimal_trajectory_planner
+	url = git@github.com:GIU-F1Tenth/frenet_optimal_trajectory_planner.git
