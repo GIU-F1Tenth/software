@@ -70,3 +70,6 @@
 [submodule "src/planning/giu_f1t_behavior_tree"]
 	path = src/planning/giu_f1t_behavior_tree
 	url = git@github.com:GIU-F1Tenth/giu_f1t_behavior_tree.git
+[submodule "src/perception/opponent_tracker"]
+	path = src/perception/opponent_tracker
+	url = git@github.com:GIU-F1Tenth/opponent_tracker.git
