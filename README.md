@@ -77,6 +77,8 @@ src/
 
 ### Dependencies
 
+#### System Dependencies
+
 Install ROS 2 Humble and required packages:
 
 ```bash
@@ -84,7 +86,7 @@ Install ROS 2 Humble and required packages:
 sudo apt update
 sudo apt install ros-humble-desktop
 
-# Install additional dependencies
+# Install additional ROS 2 packages
 sudo apt install -y \
     ros-humble-ackermann-msgs \
     ros-humble-urg-node \
@@ -93,11 +95,43 @@ sudo apt install -y \
     ros-humble-rosbridge-server \
     ros-humble-nav2-bringup \
     ros-humble-realsense2-camera \
+    ros-humble-vision-msgs \
     python3-colcon-common-extensions \
     python3-pip
+```
 
-# Install Python dependencies
-pip3 install numpy opencv-python matplotlib
+#### Python Dependencies
+
+All Python dependencies are managed through a comprehensive `requirements.txt` file:
+
+```bash
+# Install all Python dependencies at once
+pip3 install -r requirements.txt
+```
+
+The requirements.txt includes:
+- **Core Libraries**: NumPy, SciPy, Matplotlib, Pandas
+- **Computer Vision**: OpenCV, scikit-image  
+- **Machine Learning**: scikit-learn, HDBSCAN
+- **Deep Learning**: Ultralytics YOLO, PyTorch
+- **Hardware Drivers**: PyRealSense2, GxIPy (industrial cameras)
+- **Optimization**: CasADi (for MPC controller)
+- **Data Processing**: PyYAML, Roboflow API
+
+#### Optional: Conda Environment for Racing Line Optimization
+
+For optimal performance with racing line optimization, create a dedicated conda environment:
+
+```bash
+# Create conda environment
+conda create -n raceline python=3.10
+conda activate raceline
+
+# Install optimized packages via conda
+conda install -c conda-forge casadi matplotlib numpy scipy
+
+# Install remaining packages via pip
+pip install -r requirements.txt
 ```
 
 ## Getting Started
@@ -253,6 +287,42 @@ Configuration files are located in:
 Key configuration files:
 - `f1tenth_online_async_mapping.yaml` - SLAM parameters
 - Vehicle-specific parameters for controllers and sensors
+
+## Component-Specific Dependencies
+
+Different components have specific dependency requirements:
+
+### 🎯 Object Detection & Perception
+- **YOLO Detection**: `ultralytics`, `torch`, `torchvision`
+- **Camera Processing**: `opencv-python`, `pyrealsense2`
+- **Industrial Cameras**: `gxipy` (Daheng Imaging cameras)
+- **Clustering**: `scikit-learn`, `hdbscan`
+- **Annotation Platform**: `roboflow`
+
+### 🧠 Control Systems
+- **MPC Controller**: `casadi` (optimization), `numpy`, `pandas`
+- **Safety Node**: Standard ROS 2 + `numpy`
+- **Watchdog**: Standard ROS 2 libraries
+
+### 🗺️ Planning & Navigation
+- **Pure Pursuit**: `numpy`, `csv processing`
+- **Trajectory Planning**: `scipy`, `matplotlib`
+- **Racing Line Optimization**: `casadi`, `trajectory_planning_helpers`
+- **Gap Follower**: `numpy`, Standard ROS 2
+
+### 📊 SLAM & Mapping
+- **Standard Nav2**: Included with ROS 2 installation
+- **Custom Algorithms**: `numpy`, `scipy`
+
+### 🔧 Hardware Drivers
+- **LiDAR**: `urg_node` (ROS 2 package)
+- **RealSense**: `pyrealsense2`, `realsense2_camera` (ROS 2)
+- **VESC**: Custom ROS 2 messages and drivers
+
+### ⚡ Performance Notes
+- **GPU Acceleration**: YOLO models benefit from CUDA-enabled PyTorch
+- **Real-time Requirements**: Some components require RT kernel for best performance
+- **Memory Usage**: Object detection models require ~2-4GB GPU memory
 
 ## Monitoring and Debugging
 
