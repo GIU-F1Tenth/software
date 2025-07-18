@@ -4,12 +4,15 @@
 [submodule "src/control/pid_controller"]
 	path = src/control/pid_controller
 	url = git@github.com:GIU-F1Tenth/pid_controller
+	branch = main
 [submodule "src/control/mpc_controller"]
 	path = src/control/mpc_controller
 	url = git@github.com:GIU-F1Tenth/mpc_controller
+	branch = main
 [submodule "src/perception/obj_detection"]
 	path = src/perception/obj_detection
 	url = git@github.com:GIU-F1Tenth/obj_detection
+	branch = main
 [submodule "src/drivers/realsense-ros"]
 	path = src/drivers/realsense-ros
 	url = https://github.com/IntelRealSense/realsense-ros
@@ -22,9 +25,11 @@
 [submodule "src/planning/trajectory_planning"]
 	path = src/planning/trajectory_planning
 	url = git@github.com:GIU-F1Tenth/trajectory_planning
+	branch = main
 [submodule "src/planning/behavioral_planning"]
 	path = src/planning/behavioral_planning
 	url = git@github.com:GIU-F1Tenth/behavioral_planning
+	branch = main
 [submodule "src/slam/frontier_exploration"]
 	path = src/slam/frontier_exploration
 	url = git@github.com:GIU-F1Tenth/frontier_exploration
@@ -34,7 +39,7 @@
 [submodule "src/giu_f1t_system"]
 	path = src/giu_f1t_system
 	url = git@github.com:GIU-F1Tenth/giu_f1t_system.git
-	branch = humble-devel
+	branch = main
 [submodule "src/drivers/urg_node"]
 	path = src/drivers/urg_node
 	url = git@github.com:ros-drivers/urg_node.git
@@ -46,33 +51,33 @@
 	path = src/planning/navigation2
 	url = git@github.com:ros-navigation/navigation2.git
 	branch = humble
-[submodule "src/perception/camera_obj_detection"]
-	path = src/perception/camera_obj_detection
-	url = git@github.com:TheOneAndOnlyZestro/camera_object_detection.git
 [submodule "libs/raceline-optimization"]
 	path = libs/raceline-optimization
 	url = git@github.com:GIU-F1Tenth/Raceline-Optimization.git
 [submodule "src/planning/gap_follower"]
 	path = src/planning/gap_follower
 	url = git@github.com:GIU-F1Tenth/gap_follower.git
+	branch = main
 [submodule "src/control/safety_node"]
 	path = src/control/safety_node
 	url = git@github.com:GIU-F1Tenth/safety_node.git
+	branch = main
 [submodule "src/planning/pure_pursuit"]
 	path = src/planning/pure_pursuit
 	url = git@github.com:GIU-F1Tenth/pure_pursuit.git
+	branch = main
 [submodule "src/planning/behavior_tree_cpp"]
 	path = src/planning/behavior_tree_cpp
 	url = https://github.com/GIU-F1Tenth/BehaviorTree.CPP.git
+	branch = main
 [submodule "src/control/watchdog"]
 	path = src/control/watchdog
 	url = git@github.com:GIU-F1Tenth/watchdog.git
+	branch = main
 [submodule "src/planning/giu_f1t_behavior_tree"]
 	path = src/planning/giu_f1t_behavior_tree
 	url = git@github.com:GIU-F1Tenth/giu_f1t_behavior_tree.git
-[submodule "src/perception/opponent_tracker"]
-	path = src/perception/opponent_tracker
-	url = git@github.com:GIU-F1Tenth/opponent_tracker.git
+	branch = main
 [submodule "libs/frenet_optimal_trajectory_planner"]
 	path = libs/frenet_optimal_trajectory_planner
 	url = git@github.com:GIU-F1Tenth/frenet_optimal_trajectory_planner.git
