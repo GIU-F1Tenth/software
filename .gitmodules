@@ -3,42 +3,42 @@
 	url = https://github.com/Hokuyo-aut/urg_node2
 [submodule "src/control/pid_controller"]
 	path = src/control/pid_controller
-	url = git@github.com:GIU-F1Tenth/pid_controller
+	url = https://github.com/GIU-F1Tenth/pid_controller.git
 	branch = main
 [submodule "src/control/mpc_controller"]
 	path = src/control/mpc_controller
-	url = git@github.com:GIU-F1Tenth/mpc_controller
+	url = https://github.com/GIU-F1Tenth/mpc_controller.git
 	branch = main
 [submodule "src/perception/obj_detection"]
 	path = src/perception/obj_detection
-	url = git@github.com:GIU-F1Tenth/obj_detection
+	url = https://github.com/GIU-F1Tenth/obj_detection.git
 	branch = main
 [submodule "src/drivers/realsense-ros"]
 	path = src/drivers/realsense-ros
 	url = https://github.com/IntelRealSense/realsense-ros
 [submodule "src/giu_f1t_utils"]
 	path = src/giu_f1t_utils
-	url = git@github.com:GIU-F1Tenth/giu_f1t_utils
+	url = https://github.com/GIU-F1Tenth/giu_f1t_utils.git
 [submodule "src/giu_f1t_interfaces"]
 	path = src/giu_f1t_interfaces
-	url = git@github.com:GIU-F1Tenth/giu_f1t_interfaces
+	url = https://github.com/GIU-F1Tenth/giu_f1t_interfaces.git
 [submodule "src/planning/trajectory_planning"]
 	path = src/planning/trajectory_planning
-	url = git@github.com:GIU-F1Tenth/trajectory_planning
+	url = https://github.com/GIU-F1Tenth/trajectory_planning.git
 	branch = main
 [submodule "src/planning/behavioral_planning"]
 	path = src/planning/behavioral_planning
-	url = git@github.com:GIU-F1Tenth/behavioral_planning
+	url = https://github.com/GIU-F1Tenth/behavioral_planning.git
 	branch = main
 [submodule "src/slam/frontier_exploration"]
 	path = src/slam/frontier_exploration
-	url = git@github.com:GIU-F1Tenth/frontier_exploration
+	url = https://github.com/GIU-F1Tenth/frontier_exploration.git
 [submodule "src/slam/nav2_wfe"]
 	path = src/slam/nav2_wfe
 	url = https://github.com/kaiaai/nav2_wfe.git
 [submodule "src/giu_f1t_system"]
 	path = src/giu_f1t_system
-	url = git@github.com:GIU-F1Tenth/giu_f1t_system.git
+	url = https://github.com/GIU-F1Tenth/giu_f1t_system.git
 	branch = main
 [submodule "src/drivers/urg_node"]
 	path = src/drivers/urg_node
@@ -53,18 +53,18 @@
 	branch = humble
 [submodule "libs/raceline-optimization"]
 	path = libs/raceline-optimization
-	url = git@github.com:GIU-F1Tenth/Raceline-Optimization.git
+	url = https://github.com/GIU-F1Tenth/Raceline-Optimization.git
 [submodule "src/planning/gap_follower"]
 	path = src/planning/gap_follower
-	url = git@github.com:GIU-F1Tenth/gap_follower.git
+	url = https://github.com/GIU-F1Tenth/gap_follower.git
 	branch = main
 [submodule "src/control/safety_node"]
 	path = src/control/safety_node
-	url = git@github.com:GIU-F1Tenth/safety_node.git
+	url = https://github.com/GIU-F1Tenth/safety_node.git
 	branch = main
 [submodule "src/planning/pure_pursuit"]
 	path = src/planning/pure_pursuit
-	url = git@github.com:GIU-F1Tenth/pure_pursuit.git
+	url = https://github.com/GIU-F1Tenth/pure_pursuit.git
 	branch = main
 [submodule "src/planning/behavior_tree_cpp"]
 	path = src/planning/behavior_tree_cpp
@@ -72,12 +72,12 @@
 	branch = main
 [submodule "src/control/watchdog"]
 	path = src/control/watchdog
-	url = git@github.com:GIU-F1Tenth/watchdog.git
+	url = https://github.com/GIU-F1Tenth/watchdog.git
 	branch = main
 [submodule "src/planning/giu_f1t_behavior_tree"]
 	path = src/planning/giu_f1t_behavior_tree
-	url = git@github.com:GIU-F1Tenth/giu_f1t_behavior_tree.git
+	url = https://github.com/GIU-F1Tenth/giu_f1t_behavior_tree.git
 	branch = main
 [submodule "libs/frenet_optimal_trajectory_planner"]
 	path = libs/frenet_optimal_trajectory_planner
-	url = git@github.com:GIU-F1Tenth/frenet_optimal_trajectory_planner.git
+	url = https://github.com/GIU-F1Tenth/frenet_optimal_trajectory_planner.git
