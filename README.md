@@ -97,6 +97,7 @@ sudo apt install -y \
     ros-humble-realsense2-camera \
     ros-humble-vision-msgs \
     python3-colcon-common-extensions \
+    ros-humble-asio-cmake-module \
     python3-pip
 ```
 
