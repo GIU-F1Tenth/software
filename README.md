@@ -97,6 +97,7 @@ sudo apt install -y \
     ros-humble-realsense2-camera \
     ros-humble-vision-msgs \
     python3-colcon-common-extensions \
+    ros-humble-asio-cmake-module \
     python3-pip
 ```
 
@@ -388,6 +389,12 @@ colcon test
 - Check individual package documentation in their respective directories
 - Review ROS 2 logs: `ros2 run tf2_tools view_frames.py`
 - Monitor system resources and network connectivity
+
+### Logitech F170 Controller
+
+Jetsons that have Jetpack 6 kernel unfortunately do not have the ability to read the output from the Logitech F710 controller. However, work-arounds are possible. 
+
+In specific, we connect the controller to the computer (running the ROS2 joy node). Then, we make sure both devices (PC and Jetson) have the same `ROS_DOMAIN_ID` environment variable set (i.e. `ROS_DOMAIN_ID=3`). This allows for the topics to propogate over UDP. Note: make sure that UDP is allowed for and that the firewall is not blocking it.
 
 ## Hardware Requirements
 
