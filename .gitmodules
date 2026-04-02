@@ -78,3 +78,6 @@
 	path = src/control/trailing_controller
 	url = https://github.com/GIU-F1Tenth/trailing_controller.git
 	branch = main
+[submodule "libs/raceline_editor"]
+	path = libs/raceline_editor
+	url = https://github.com/GIU-F1Tenth/raceline_editor.git
