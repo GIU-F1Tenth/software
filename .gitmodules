@@ -33,24 +33,17 @@
 [submodule "src/slam/frontier_exploration"]
 	path = src/slam/frontier_exploration
 	url = https://github.com/GIU-F1Tenth/frontier_exploration.git
-[submodule "src/slam/nav2_wfe"]
-	path = src/slam/nav2_wfe
-	url = https://github.com/kaiaai/nav2_wfe.git
 [submodule "src/giu_f1t_system"]
 	path = src/giu_f1t_system
 	url = https://github.com/GIU-F1Tenth/giu_f1t_system.git
 	branch = main
 [submodule "src/drivers/urg_node"]
 	path = src/drivers/urg_node
-	url = git@github.com:ros-drivers/urg_node.git
+	url = https://github.com/ros-drivers/urg_node.git
 [submodule "src/drivers/urg_c"]
 	path = src/drivers/urg_c
-	url = git@github.com:ros-drivers/urg_c.git
+	url = https://github.com/ros-drivers/urg_c.git
 	branch = ros2-devel
-[submodule "src/planning/navigation2"]
-	path = src/planning/navigation2
-	url = git@github.com:ros-navigation/navigation2.git
-	branch = humble
 [submodule "libs/raceline-optimization"]
 	path = libs/raceline-optimization
 	url = https://github.com/GIU-F1Tenth/Raceline-Optimization.git
@@ -81,3 +74,10 @@
 [submodule "libs/frenet_optimal_trajectory_planner"]
 	path = libs/frenet_optimal_trajectory_planner
 	url = https://github.com/GIU-F1Tenth/frenet_optimal_trajectory_planner.git
+[submodule "src/control/trailing_controller"]
+	path = src/control/trailing_controller
+	url = https://github.com/GIU-F1Tenth/trailing_controller.git
+	branch = main
+[submodule "libs/raceline_editor"]
+	path = libs/raceline_editor
+	url = https://github.com/GIU-F1Tenth/raceline_editor.git
