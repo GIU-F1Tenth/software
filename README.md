@@ -118,6 +118,15 @@ The requirements.txt includes:
 - **Hardware Drivers**: PyRealSense2, GxIPy (industrial cameras)
 - **Optimization**: CasADi (for MPC controller)
 - **Data Processing**: PyYAML, Roboflow API
+- **For Converting the image into grayscale**: 
+```bash
+sudo apt update
+sudo apt install imagemagick
+```
+**Use this command to convert the image into grayscale**
+```bash
+convert input.png -alpha off -colorspace Gray output.png
+```
 
 #### Optional: Conda Environment for Racing Line Optimization
 
@@ -177,7 +186,12 @@ ros2 launch f1tenth_stack bringup_launch_raw.py
 
 #### SLAM Mode
 For mapping unknown environments:
+**Just Before you start slam make sure to run the joy node on your local machine with this topic mapping to give the joy_slam_capping node a chance to cap the velocity of the vehicle. And after the slam process just launch the joy_node without the topic mapping**
 
+```bash
+ros2 run joy joy_node --ros-args -r joy:=/joy_ackermann_filter
+
+```
 ```bash
 ros2 launch f1tenth_stack bringup_launch_slam.py
 ros2 launch nav2_bringup slam_launch.py params_file:=src/giu_f1t_system/f1tenth_stack/config/f1tenth_online_async_mapping.yaml
@@ -218,13 +232,12 @@ ros2 run joy joy_node
 
 2. **Save Map**:
    ```bash
-   ros2 run nav2_map_server map_saver_cli
+   python scripts/save_map_and_send.py -o <map_name>
    ```
 
-3. **Transfer Map** (from vehicle to host):
-   ```bash
-   scp ubuntu@[vehicle_ip]:/home/ubuntu/giu_f1tenth_ws/software/map.pgm ~/maps/
-   ```
+3. **Transfer Map**:
+
+Copy the commands that were generated to transfer the map locally.
 
 ### Racing Line Optimization
 
