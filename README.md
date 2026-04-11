@@ -98,6 +98,7 @@ sudo apt install -y \
     ros-humble-vision-msgs \
     python3-colcon-common-extensions \
     ros-humble-asio-cmake-module \
+    ros-humble-serial-driver \
     python3-pip
 ```
 
@@ -193,7 +194,7 @@ ros2 run joy joy_node --ros-args -r joy:=/joy_ackermann_filter
 
 ```
 ```bash
-ros2 launch f1tenth_stack bringup_launch_slam.py
+ros2 launch f1tenth_stack bringup_launch_raw.py
 ros2 launch nav2_bringup slam_launch.py params_file:=src/giu_f1t_system/f1tenth_stack/config/f1tenth_online_async_mapping.yaml
 ```
 
