@@ -47,3 +47,6 @@
 [submodule "src/control/pure_pursuit"]
 	path = src/control/pure_pursuit
 	url = https://github.com/GIU-F1Tenth/pure_pursuit.git
+[submodule "libs/map-cleaner"]
+	path = libs/map-cleaner
+	url = https://github.com/GIU-F1Tenth/map-cleaner.git
