@@ -50,3 +50,11 @@
 [submodule "libs/map-cleaner"]
 	path = libs/map-cleaner
 	url = https://github.com/GIU-F1Tenth/map-cleaner.git
+[submodule "src/control/alqr"]
+	path = src/control/alqr
+	url = https://github.com/GIU-F1Tenth/ALQR.git
+	branch = main
+[submodule "src/race_monitor"]
+	path = src/race_monitor
+	url = https://github.com/GIU-F1Tenth/race_monitor.git
+	branch = main
