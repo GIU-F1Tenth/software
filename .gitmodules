@@ -13,23 +13,9 @@
 	path = src/perception/obj_detection
 	url = https://github.com/GIU-F1Tenth/obj_detection.git
 	branch = main
-[submodule "src/giu_f1t_utils"]
-	path = src/giu_f1t_utils
-	url = https://github.com/GIU-F1Tenth/giu_f1t_utils.git
 [submodule "src/giu_f1t_interfaces"]
 	path = src/giu_f1t_interfaces
 	url = https://github.com/GIU-F1Tenth/giu_f1t_interfaces.git
-[submodule "src/planning/trajectory_planning"]
-	path = src/planning/trajectory_planning
-	url = https://github.com/GIU-F1Tenth/trajectory_planning.git
-	branch = main
-[submodule "src/planning/behavioral_planning"]
-	path = src/planning/behavioral_planning
-	url = https://github.com/GIU-F1Tenth/behavioral_planning.git
-	branch = main
-[submodule "src/slam/frontier_exploration"]
-	path = src/slam/frontier_exploration
-	url = https://github.com/GIU-F1Tenth/frontier_exploration.git
 [submodule "src/giu_f1t_system"]
 	path = src/giu_f1t_system
 	url = https://github.com/GIU-F1Tenth/giu_f1t_system.git
@@ -48,26 +34,6 @@
 	path = src/planning/gap_follower
 	url = https://github.com/GIU-F1Tenth/gap_follower.git
 	branch = main
-[submodule "src/control/safety_node"]
-	path = src/control/safety_node
-	url = https://github.com/GIU-F1Tenth/safety_node.git
-	branch = main
-[submodule "src/control/pure_pursuit"]
-	path = src/control/pure_pursuit
-	url = https://github.com/GIU-F1Tenth/pure_pursuit.git
-	branch = main
-[submodule "src/planning/behavior_tree_cpp"]
-	path = src/planning/behavior_tree_cpp
-	url = https://github.com/GIU-F1Tenth/BehaviorTree.CPP.git
-	branch = main
-[submodule "src/control/watchdog"]
-	path = src/control/watchdog
-	url = https://github.com/GIU-F1Tenth/watchdog.git
-	branch = main
-[submodule "src/planning/giu_f1t_behavior_tree"]
-	path = src/planning/giu_f1t_behavior_tree
-	url = https://github.com/GIU-F1Tenth/giu_f1t_behavior_tree.git
-	branch = main
 [submodule "libs/frenet_optimal_trajectory_planner"]
 	path = libs/frenet_optimal_trajectory_planner
 	url = https://github.com/GIU-F1Tenth/frenet_optimal_trajectory_planner.git
@@ -78,3 +44,6 @@
 [submodule "libs/raceline_editor"]
 	path = libs/raceline_editor
 	url = https://github.com/GIU-F1Tenth/raceline_editor.git
+[submodule "src/control/pure_pursuit"]
+	path = src/control/pure_pursuit
+	url = https://github.com/GIU-F1Tenth/pure_pursuit.git
