@@ -52,8 +52,8 @@
 	path = src/control/safety_node
 	url = https://github.com/GIU-F1Tenth/safety_node.git
 	branch = main
-[submodule "src/planning/pure_pursuit"]
-	path = src/planning/pure_pursuit
+[submodule "src/control/pure_pursuit"]
+	path = src/control/pure_pursuit
 	url = https://github.com/GIU-F1Tenth/pure_pursuit.git
 	branch = main
 [submodule "src/planning/behavior_tree_cpp"]
