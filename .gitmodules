@@ -13,9 +13,6 @@
 	path = src/perception/obj_detection
 	url = https://github.com/GIU-F1Tenth/obj_detection.git
 	branch = main
-[submodule "src/drivers/realsense-ros"]
-	path = src/drivers/realsense-ros
-	url = https://github.com/IntelRealSense/realsense-ros
 [submodule "src/giu_f1t_utils"]
 	path = src/giu_f1t_utils
 	url = https://github.com/GIU-F1Tenth/giu_f1t_utils.git
