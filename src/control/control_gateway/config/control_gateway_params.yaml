@@ -9,8 +9,10 @@ control_gateway:
     controllers:
       - "teleop"
       - "pure_pursuit"
+      - "gap_following"
 
     default_controller: "teleop"
 
     "controller.teleop.output_topic": "/teleop/drive"
     "controller.pure_pursuit.output_topic": "/pp/drive"
+    "controller.gap_following.output_topic": "/gap_following/drive"
