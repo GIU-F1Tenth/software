@@ -4,7 +4,7 @@ package_name = 'control_gateway'
 
 setup(
     name=package_name,
-    version='0.1.0',
+    version='0.2.0',
     packages=find_packages(exclude=['test']),
     data_files=[
         ('share/ament_index/resource_index/packages',
@@ -24,7 +24,8 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "control_gateway = your_package.control_gateway:main",
+            "control_gateway = control_gateway.control_gateway:main",
+            "manual_mode_selector = control_gateway.teleop_switcher:main",
         ],
     },
 )

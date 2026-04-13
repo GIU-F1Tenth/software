@@ -1,0 +1,7 @@
+teleop_switcher:
+  ros__parameters:
+    joy_topic: "/joy"
+    selector_topic: "/control_selector"
+    manual_controller_name: "teleop"
+
+    manual_button_index: 1
