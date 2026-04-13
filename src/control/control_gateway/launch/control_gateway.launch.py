@@ -13,7 +13,7 @@ def generate_launch_description():
     default_config = os.path.join(
         get_package_share_directory(package_name),
         "config",
-        "control_gateway_params.yaml",
+        "teleop_switcher_params.yaml",
     )
     params_file_arg = DeclareLaunchArgument(
         "params_file",
@@ -25,7 +25,6 @@ def generate_launch_description():
         package=package_name,
         executable="control_gateway",
         name="control_gateway",
-        output="screen",
         parameters=[LaunchConfiguration("params_file")],
     )
 

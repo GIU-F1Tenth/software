@@ -21,21 +21,18 @@ class ControlGateway(Node):
         self.declare_parameter("selector_topic", "/control_selector")
         self.declare_parameter("drive_topic", "/drive")
         self.declare_parameter("enable_button_index", 4)
-        self.declare_parameter(
-            "control_message_type",
-            "ackermann_msgs/msg/AckermannDriveStamped",
-        )
-        self.declare_parameter("controllers", [])
-        self.declare_parameter("default_controller", "")
+        self.declare_parameter("controllers", ["lqr"])
+        self.declare_parameter("default_controller", "lqr")
+        self.declare_parameter("controller_teleop_output_topic", "/teleop/drive")
+        self.declare_parameter("controller_pure_pursuit_output_topic", "/pp/drive")
+        self.declare_parameter("controller_gap_following_output_topic", "/gap_following/drive")
+        self.declare_parameter("controller_lqr_output_topic", "/lqr/drive")
 
         self.joy_topic = self.get_parameter("joy_topic").value
         self.selector_topic = self.get_parameter("selector_topic").value
         self.drive_topic = self.get_parameter("drive_topic").value
         self.enable_button_index = int(self.get_parameter("enable_button_index").value)
-        self.control_message_type_str = self.get_parameter(
-            "control_message_type"
-        ).value
-        self.controllers = list(self.get_parameter("controllers").value)
+        self.controllers = self.get_parameter("controllers").value
         self.default_controller = self.get_parameter("default_controller").value
 
         if not self.controllers:
@@ -45,16 +42,16 @@ class ControlGateway(Node):
             )
 
         self.controller_topics: Dict[str, str] = {}
-        all_controller_params = self.get_parameters_by_prefix("controller")
-
+        all_controller_keys = {param for param in self.get_parameters_by_prefix("").keys() if param.startswith("controller_")}
         for controller_name in self.controllers:
-            key = f"{controller_name}.output_topic"
-            if key not in all_controller_params:
+            key = f"controller_{controller_name}_output_topic"
+            
+            if key not in all_controller_keys:
                 raise ValueError(
-                    f"Missing parameter 'controller.{controller_name}.output_topic'"
+                    f"Missing parameter '{key}'"
                 )
 
-            topic_name = all_controller_params[key].value
+            topic_name = self.get_parameter(key).value
             if not isinstance(topic_name, str) or not topic_name:
                 raise ValueError(
                     f"Invalid topic for controller '{controller_name}': {topic_name}"
@@ -98,7 +95,7 @@ class ControlGateway(Node):
         self.controller_subs = []
         for controller_name, topic_name in self.controller_topics.items():
             sub = self.create_subscription(
-                self.control_msg_type,
+                AckermannDriveStamped,
                 topic_name,
                 partial(self.controller_callback, controller_name),
                 10,
