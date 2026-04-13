@@ -1,0 +1,16 @@
+control_gateway:
+  ros__parameters:
+    joy_topic: "/joy"
+    selector_topic: "/control_selector"
+    drive_topic: "/drive"
+
+    enable_button_index: 4
+
+    controllers:
+      - "teleop"
+      - "pure_pursuit"
+
+    default_controller: "teleop"
+
+    "controller.teleop.output_topic": "/teleop/drive"
+    "controller.pure_pursuit.output_topic": "/pp/drive"
