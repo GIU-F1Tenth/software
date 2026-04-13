@@ -34,9 +34,6 @@
 	path = src/planning/gap_follower
 	url = https://github.com/GIU-F1Tenth/gap_follower.git
 	branch = main
-[submodule "libs/frenet_optimal_trajectory_planner"]
-	path = libs/frenet_optimal_trajectory_planner
-	url = https://github.com/GIU-F1Tenth/frenet_optimal_trajectory_planner.git
 [submodule "src/control/trailing_controller"]
 	path = src/control/trailing_controller
 	url = https://github.com/GIU-F1Tenth/trailing_controller.git
