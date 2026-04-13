@@ -7,6 +7,8 @@ from rclpy.node import Node
 from sensor_msgs.msg import Joy
 from std_msgs.msg import String
 
+from time import sleep
+
 
 class TeleopSwitcher(Node):
     def __init__(self) -> None:
@@ -14,18 +16,16 @@ class TeleopSwitcher(Node):
 
         self.declare_parameter("joy_topic", "/joy")
         self.declare_parameter("selector_topic", "/control_selector")
-        self.declare_parameter("manual_controller_name", "teleop")
+        self.declare_parameter("swap_list", ["lqr"])
 
-        self.declare_parameter("manual_button_index", 1)
+        self.declare_parameter("manual_button_index", 7)
 
         self.joy_topic = self.get_parameter("joy_topic").value
         self.selector_topic = self.get_parameter("selector_topic").value
-        self.manual_controller_name = self.get_parameter(
-            "manual_controller_name"
-        ).value
         self.manual_button_index = int(
             self.get_parameter("manual_button_index").value
         )
+        self.swap_list = self.get_parameter("swap_list").value
 
         self.selector_pub = self.create_publisher(String, self.selector_topic, 10)
         self.joy_sub = self.create_subscription(
@@ -34,6 +34,9 @@ class TeleopSwitcher(Node):
             self.joy_callback,
             10,
         )
+        
+        self.current_idx = 0
+        print(self.swap_list)
 
     def joy_callback(self, msg: Joy) -> None:
         if self.manual_button_index < 0:
@@ -50,12 +53,15 @@ class TeleopSwitcher(Node):
 
         if bool(msg.buttons[self.manual_button_index]):
             out = String()
-            out.data = self.manual_controller_name
+            self.current_idx = (self.current_idx + 1) % len(self.swap_list)
+            out.data = self.swap_list[self.current_idx]
             self.selector_pub.publish(out)
             self.get_logger().info(
                 f"Manual override requested, switching selector to "
-                f"'{self.manual_controller_name}'"
+                f"'{out.data}'"
             )
+            sleep(0.5)
+            
 
 
 def main(args=None) -> None:
