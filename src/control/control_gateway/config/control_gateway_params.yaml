@@ -6,13 +6,10 @@ control_gateway:
 
     enable_button_index: 4
 
-    controllers:
-      - "teleop"
-      - "pure_pursuit"
-      - "gap_following"
+    controllers: ["teleop", "pure_pursuit", "gap_following"]
 
     default_controller: "teleop"
 
-    "controller.teleop.output_topic": "/teleop/drive"
-    "controller.pure_pursuit.output_topic": "/pp/drive"
-    "controller.gap_following.output_topic": "/gap_following/drive"
+    controller_teleop_output_topic: "/teleop/drive"
+    controller_pure_pursuit_output_topic: "/pp/drive"
+    controller_gap_following_output_topic: "/gap_following/drive"
