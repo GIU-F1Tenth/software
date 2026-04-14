@@ -2,7 +2,6 @@ teleop_switcher:
   ros__parameters:
     joy_topic: "/joy"
     selector_topic: "/control_selector"
-    manual_controller_name: "teleop"
 
     swap_list: ["teleop", "pure_pursuit", "gap_following"]
 
