@@ -2,6 +2,7 @@ teleop_switcher:
   ros__parameters:
     joy_topic: "/joy"
     selector_topic: "/control_selector"
+    debounce_time: 0.5
 
     swap_list: ["teleop", "pure_pursuit", "gap_following"]
 
