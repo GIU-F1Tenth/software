@@ -21,7 +21,7 @@ class ControlGateway(Node):
         self.declare_parameter("selector_topic", "/control_selector")
         self.declare_parameter("drive_topic", "/drive")
         self.declare_parameter("enable_button_index", 4)
-        self.declare_parameter("controllers", ["lqr"])
+        self.declare_parameter("controllers", ["lqr", "gap_following", "pure_pursuit", "teleop"])
         self.declare_parameter("default_controller", "lqr")
         self.declare_parameter(
             "controller_teleop_output_topic", "/teleop/drive")

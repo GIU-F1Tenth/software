@@ -7,7 +7,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import Joy
 from std_msgs.msg import String
 
-from time import sleep
+from time import time
 
 
 class TeleopSwitcher(Node):
@@ -16,7 +16,7 @@ class TeleopSwitcher(Node):
 
         self.declare_parameter("joy_topic", "/joy")
         self.declare_parameter("selector_topic", "/control_selector")
-        self.declare_parameter("swap_list", ["lqr"])
+        self.declare_parameter("swap_list", ["lqr", "gap_following", "pure_pursuit", "teleop"])
 
         self.declare_parameter("manual_button_index", 7)
 
@@ -33,21 +33,24 @@ class TeleopSwitcher(Node):
             self.joy_topic,
             self.joy_callback,
             10,
-        )
+        )        
         
         self.current_idx = 0
-        print(self.swap_list)
+        self.last_pressed = 0
+        self.debounce_time = 0.5
 
     def joy_callback(self, msg: Joy) -> None:
+        current_time = time()
+
+        if current_time - self.last_pressed < self.debounce_time:
+            return
+        
+        self.last_pressed = current_time
+        
         if self.manual_button_index < 0:
             return
 
         if self.manual_button_index >= len(msg.buttons):
-            self.get_logger().warn(
-                f"Joy message does not contain button index {self.manual_button_index}. "
-                f"buttons length = {len(msg.buttons)}",
-                throttle_duration_sec=2.0,
-            )
             self.prev_buttons = list(msg.buttons)
             return
 
@@ -60,7 +63,6 @@ class TeleopSwitcher(Node):
                 f"Manual override requested, switching selector to "
                 f"'{out.data}'"
             )
-            sleep(0.5)
             
 
 
