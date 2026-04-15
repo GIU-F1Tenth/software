@@ -99,6 +99,7 @@ sudo apt install -y \
     python3-colcon-common-extensions \
     ros-humble-asio-cmake-module \
     ros-humble-serial-driver \
+    ros-humble-tf-transformations \
     python3-pip
 ```
 
