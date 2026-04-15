@@ -21,7 +21,8 @@ class ControlGateway(Node):
         self.declare_parameter("selector_topic", "/control_selector")
         self.declare_parameter("drive_topic", "/drive")
         self.declare_parameter("enable_button_index", 4)
-        self.declare_parameter("controllers", ["lqr", "gap_following", "pure_pursuit", "teleop"])
+        self.declare_parameter(
+            "controllers", ["lqr", "gap_following", "pure_pursuit", "teleop", "dwa"])
         self.declare_parameter("default_controller", "lqr")
         self.declare_parameter(
             "controller_teleop_output_topic", "/teleop/drive")
@@ -30,6 +31,7 @@ class ControlGateway(Node):
         self.declare_parameter(
             "controller_gap_following_output_topic", "/gap_following/drive")
         self.declare_parameter("controller_lqr_output_topic", "/lqr/drive")
+        self.declare_parameter("controller_dwa_output_topic", "/dwa/drive")
 
         self.joy_topic = self.get_parameter("joy_topic").value
         self.selector_topic = self.get_parameter("selector_topic").value

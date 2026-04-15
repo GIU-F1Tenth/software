@@ -17,7 +17,7 @@ class TeleopSwitcher(Node):
         self.declare_parameter("joy_topic", "/joy")
         self.declare_parameter("selector_topic", "/control_selector")
         self.declare_parameter(
-            "swap_list", ["lqr", "gap_following", "pure_pursuit", "teleop"])
+            "swap_list", ["lqr", "gap_following", "pure_pursuit", "teleop", "dwa"])
         self.declare_parameter("debounce_time", 0.5)
 
         self.declare_parameter("manual_button_index", 7)

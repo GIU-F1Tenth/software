@@ -58,3 +58,6 @@
 [submodule "src/planning/overtaking"]
 	path = src/planning/overtaking
 	url = https://github.com/GIU-F1Tenth/overtaking.git
+[submodule "src/planning/trajectory_planning"]
+	path = src/planning/trajectory_planning
+	url = https://github.com/GIU-F1Tenth/trajectory_planning.git
