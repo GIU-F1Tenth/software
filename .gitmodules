@@ -55,3 +55,6 @@
 	path = src/race_monitor
 	url = https://github.com/GIU-F1Tenth/race_monitor.git
 	branch = main
+[submodule "src/planning/overtaking"]
+	path = src/planning/overtaking
+	url = https://github.com/GIU-F1Tenth/overtaking.git
