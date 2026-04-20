@@ -1,12 +1,14 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Final
+from typing import Final, Collection, Any
+
 
 
 class StateType(Enum):
     """Enumeration of possible FSM state types."""
     IDLE = "idle"
-    ACTIVE = "active"
+    FP = "fp"
+    REACTIVE = "reactive"
 
 class State(ABC):
     """
@@ -23,7 +25,7 @@ class State(ABC):
         return self._state_type
 
     @abstractmethod
-    def transition(self) -> StateType:
+    def transition(self, objects: Collection[Any] = None) -> StateType:
         """
         Determine the next state to transition to.
 
@@ -36,7 +38,7 @@ class State(ABC):
         pass
     
     @abstractmethod
-    def execute(self) -> None:
+    def execute(self, objects: Collection[Any] = None) -> None:
         """
         Execute the actions associated with this state.
 
