@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'src/decision'
+package_name = 'decision'
 
 setup(
     name=package_name,
