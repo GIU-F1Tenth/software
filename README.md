@@ -202,6 +202,8 @@ ros2 launch nav2_bringup slam_launch.py params_file:=src/giu_f1t_system/f1tenth_
 For saving the map:
 ```bash
 ros2 run nav2_map_server map_saver_cli
+ros2 run nav2_map_server map_saver_cli --fmt png
+
 ```
 
 #### Racing Mode
