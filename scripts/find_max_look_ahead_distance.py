@@ -25,7 +25,13 @@ class Vector:
 
 
 def dot(v1: Vector, v2: Vector) -> float:
-    return v1.dx * v2.dx + v1.dy * v2.dy
+    normalized_v1 = math.sqrt(v1.dx * v1.dx + v1.dy * v1.dy)
+    normalized_v2 = math.sqrt(v2.dx * v2.dx + v2.dy * v2.dy)
+    return (
+        (v1.dx * v2.dx + v1.dy * v2.dy) / (normalized_v1 * normalized_v2)
+        if normalized_v1 * normalized_v2 != 0
+        else 0
+    )
 
 
 def euclidean(p1: Point, p2: Point) -> float:
@@ -61,7 +67,9 @@ def main():
         description="Find the maximum safe lookahead distance for pure pursuit"
     )
     parser.add_argument(
-        "--csv-path", help="Path to the path CSV file (format: x_m, y_m, v_m/s)", required=True,
+        "--csv-path",
+        help="Path to the path CSV file (format: x_m, y_m, v_m/s)",
+        required=True,
     )
     parser.add_argument(
         "--tolerance",
