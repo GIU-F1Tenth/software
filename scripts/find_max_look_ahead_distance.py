@@ -75,7 +75,7 @@ def main():
         "--tolerance",
         type=float,
         default=0.0,
-        help="Dot product threshold to consider vectors as opposite direction",
+        help="Dot product threshold to consider vectors as opposite direction (in percentage, e.g. 0.1 for 10%% tolerance)",
     )
     args = parser.parse_args()
 
