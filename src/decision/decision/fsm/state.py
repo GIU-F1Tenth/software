@@ -6,9 +6,8 @@ from typing import Collection
 class StateType(Enum):
     """Enumeration of possible FSM state types."""
 
-    IDLE = "idle"
-    FP = "fp"
-    REACTIVE = "reactive"
+    PP = "pure_pursuit"
+    GF = "gap_following"
 
 
 class State(ABC):
