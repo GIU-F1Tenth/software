@@ -11,5 +11,5 @@ class FSM(ABC):
         """Return the active state instance."""
 
     @abstractmethod
-    def run_once(self, objects: Optional[Collection]) -> str:
+    def run_once(self, objects: Optional[Collection]) -> None:
         """Perform one execution and transition step."""

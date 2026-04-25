@@ -55,7 +55,7 @@ class SimpleFSM(FSM):
         """Return the active state instance."""
         return self._current_state
 
-    def run_once(self, objects: Optional[Collection]) -> str:
+    def run_once(self, objects: Optional[Collection]) -> None:
         """Perform one execution and transition step.
 
         - Calls the current state's `execute`.
@@ -75,7 +75,6 @@ class SimpleFSM(FSM):
             raise ValueError(f"state {next_type!r} is not present in FSM pool")
 
         self._current_state = self._state_by_type[next_type]
-        return self._current_state.state_type.value
 
 
 class FSMNode(Node):
@@ -104,7 +103,8 @@ class FSMNode(Node):
         )
 
     def objects_callback(self, msg):
-        state_str = self.fsm.run_once(objects=msg.markers)
+        self.fsm.run_once(objects=msg.markers)
+        state_str = self.fsm.current_state.state_type.value
         self.get_logger().info(
             f"Current FSM state: {state_str}", throttle_duration_sec=1.0
         )
