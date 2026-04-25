@@ -23,22 +23,26 @@ class FSM:
         self._state_by_type: Dict[StateType, State] = {}
 
         if initial not in state_types:
-            raise ValueError("initial state must be one of the provided state_types")
+            raise ValueError(
+                "initial state must be one of the provided state_types")
 
         for st in state_types:
-            module_name = st
+            module_name = st.value
             class_name = (
-                "".join(part.capitalize() for part in module_name.split("_")) + "State"
+                "".join(part.capitalize()
+                        for part in module_name.split("_")) + "State"
             )
             try:
                 module = import_module(f"decision.fsm.states.{module_name}")
                 cls = getattr(module, class_name)
                 instance = cls()
             except Exception as exc:
-                raise ImportError(f"failed to load state {st!r}: {exc}") from exc
+                raise ImportError(
+                    f"failed to load state {st!r}: {exc}") from exc
 
             if not isinstance(instance, State):
-                raise TypeError(f"state {st!r} instance is not a subclass of State")
+                raise TypeError(
+                    f"state {st!r} instance is not a subclass of State")
             self._state_by_type[st] = instance
 
         self._current_state: State = self._state_by_type[initial]
@@ -68,4 +72,4 @@ class FSM:
             raise ValueError(f"state {next_type!r} is not present in FSM pool")
 
         self._current_state = self._state_by_type[next_type]
-        return self._current_state.state_type
+        return self._current_state.state_type.value

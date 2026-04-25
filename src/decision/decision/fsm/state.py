@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
-from enum import StrEnum
+from enum import Enum
 from typing import Collection
 
 
-class StateType(StrEnum):
+class StateType(Enum):
     """Enumeration of possible FSM state types."""
 
     PP = "pure_pursuit"
