@@ -38,13 +38,3 @@ class State(ABC):
             The next State to transition to as a StateType.
         """
         pass
-
-    @abstractmethod
-    def execute(self, objects: Collection | None = None) -> None:
-        """
-        Execute the actions associated with this state.
-
-        This method should contain the logic to perform the actions that are
-        specific to this state.
-        """
-        pass

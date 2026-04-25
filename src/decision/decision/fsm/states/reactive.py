@@ -20,6 +20,3 @@ class ReactiveState(State):
         if objects is None or len(objects) == 0:
             return StateType.FP
         return StateType.REACTIVE
-
-    def execute(self, objects: Optional[Collection[Any]] = None) -> None:
-        pass
