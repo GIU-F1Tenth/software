@@ -3,7 +3,7 @@ from typing import Collection, Any, Optional
 from decision.fsm.state import State, StateType
 
 
-class Gap_followingState(State):
+class GapFollowingState(State):
     """Reactive state.
 
     If any object is detected (non-empty `objects`), remain in `StateType.REACTIVE`.

@@ -3,7 +3,7 @@ from typing import Collection, Any, Optional
 from decision.fsm.state import State, StateType
 
 
-class Pure_pursuitState(State):
+class PurePursuitState(State):
     """Follow-Path (FP) state.
 
     If any object is detected (non-empty `objects`), transition to
