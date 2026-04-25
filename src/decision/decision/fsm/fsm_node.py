@@ -32,9 +32,10 @@ class FSMNode(Node):
         )
 
     def objects_callback(self, msg):
-        self.get_logger().debug(f"Received objects: {msg}")
         state_str = self.fsm.run_once(objects=msg.markers)
-        self.get_logger().info(f"Current FSM state: {state_str}")
+        self.get_logger().info(
+            f"Current FSM state: {state_str}", throttle_duration_sec=1.0
+        )
         output_msg = String()
         output_msg.data = state_str
         self.publisher.publish(output_msg)
