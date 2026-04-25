@@ -1,5 +1,5 @@
 from importlib import import_module
-from typing import Collection, Dict, Any
+from typing import Collection, Dict, Optional
 
 from decision.fsm.state import StateType, State
 
@@ -24,10 +24,12 @@ class FSM:
 
         if initial not in state_types:
             raise ValueError("initial state must be one of the provided state_types")
-        
+
         for st in state_types:
-            module_name = st.value
-            class_name = "".join(part.capitalize() for part in module_name.split("_")) + "State"
+            module_name = st
+            class_name = (
+                "".join(part.capitalize() for part in module_name.split("_")) + "State"
+            )
             try:
                 module = import_module(f"decision.fsm.states.{module_name}")
                 cls = getattr(module, class_name)
@@ -46,7 +48,7 @@ class FSM:
         """Return the active state instance."""
         return self._current_state
 
-    def run_once(self) -> None:
+    def run_once(self, objects: Optional[Collection]) -> str:
         """Perform one execution and transition step.
 
         - Calls the current state's `execute`.
@@ -58,12 +60,12 @@ class FSM:
         Raises:
             ValueError: if the returned StateType is not part of the pool.
         """
-        self._current_state.execute()
-        next_type = self._current_state.transition()
-        
+        next_type = self._current_state.transition(objects=objects)
+
         if not isinstance(next_type, StateType):
             raise ValueError("transition must return a StateType")
         if next_type not in self._state_by_type:
             raise ValueError(f"state {next_type!r} is not present in FSM pool")
 
         self._current_state = self._state_by_type[next_type]
+        return self._current_state.state_type
