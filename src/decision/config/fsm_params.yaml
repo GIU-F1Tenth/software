@@ -1,0 +1,8 @@
+fsm_node: 
+  ros__parameters:
+    states:
+      - pure_pursuit
+      - gap_following
+    initial_state: pure_pursuit
+    objects_topic: objects
+    output_topic: fsm_state
