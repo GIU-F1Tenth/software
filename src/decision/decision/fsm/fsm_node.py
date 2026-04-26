@@ -8,6 +8,7 @@ from rclpy.node import Node
 from std_msgs.msg import String
 from visualization_msgs.msg import MarkerArray
 
+import time
 from decision.fsm import FSM
 
 
@@ -28,6 +29,7 @@ class SimpleFSM(FSM):
             initial: the initial StateType to set as the current state.
         """
         self._state_by_type: Dict[StateType, State] = {}
+        self.__state_time = time.perf_counter()
 
         if initial not in state_types:
             raise ValueError("initial state must be one of the provided state_types")
@@ -55,7 +57,7 @@ class SimpleFSM(FSM):
         """Return the active state instance."""
         return self._current_state
 
-    def run_once(self, objects: Optional[Collection]) -> None:
+    def run_once(self, objects: Optional[Collection]):
         """Perform one execution and transition step.
 
         - Calls the current state's `execute`.
@@ -67,6 +69,7 @@ class SimpleFSM(FSM):
         Raises:
             ValueError: if the returned StateType is not part of the pool.
         """
+        elapsed_time = time.perf_counter() - self.__state_time
         next_type = self._current_state.transition(objects=objects)
 
         if not isinstance(next_type, StateType):
@@ -74,7 +77,16 @@ class SimpleFSM(FSM):
         if next_type not in self._state_by_type:
             raise ValueError(f"state {next_type!r} is not present in FSM pool")
 
-        self._current_state = self._state_by_type[next_type]
+        if self.__should_swith_state(next_type, elapsed_time):
+            self.__state_time = time.perf_counter()
+            self._current_state = self._state_by_type[next_type]
+            
+        return elapsed_time 
+    
+    def __should_swith_state(self, next_type: StateType, elapsed_time: float) -> bool:
+        if next_type != self._current_state.state_type and elapsed_time > self._current_state.minimum_time_in_state:
+            return True
+        return False
 
 
 class FSMNode(Node):
