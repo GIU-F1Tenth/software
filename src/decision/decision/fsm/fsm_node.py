@@ -2,13 +2,13 @@ from collections.abc import Collection
 from importlib import import_module
 from typing import Dict, Optional
 
-from decision.decision.fsm.state import State
+from decision.fsm.state import State, StateType
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
 from visualization_msgs.msg import MarkerArray
 
-from decision.fsm import FSM, StateType
+from decision.fsm import FSM
 
 
 class SimpleFSM(FSM):
