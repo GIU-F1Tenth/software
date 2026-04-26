@@ -1,9 +1,7 @@
 teleop_switcher:
   ros__parameters:
     joy_topic: "/joy"
-    selector_topic: "/control_selector"
+    selector_topic: "/control_gateway/switch_manual_auto"
     debounce_time: 0.5
-
-    swap_list: ["teleop", "pure_pursuit", "gap_following"]
 
     manual_button_index: 7
