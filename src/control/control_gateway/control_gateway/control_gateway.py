@@ -22,25 +22,23 @@ class ControlGateway(Node):
         self.declare_parameter("drive_topic", "/drive")
         self.declare_parameter("enable_button_index", 4)
         self.declare_parameter(
-            "controllers", ["lqr", "gap_following", "pure_pursuit", "teleop", "dwa"])
+            "controllers", ["lqr", "gap_following", "pure_pursuit", "teleop", "dwa"]
+        )
         self.declare_parameter("default_controller", "lqr")
+        self.declare_parameter("controller_teleop_output_topic", "/teleop/drive")
+        self.declare_parameter("controller_pure_pursuit_output_topic", "/pp/drive")
         self.declare_parameter(
-            "controller_teleop_output_topic", "/teleop/drive")
-        self.declare_parameter(
-            "controller_pure_pursuit_output_topic", "/pp/drive")
-        self.declare_parameter(
-            "controller_gap_following_output_topic", "/gap_following/drive")
+            "controller_gap_following_output_topic", "/gap_following/drive"
+        )
         self.declare_parameter("controller_lqr_output_topic", "/lqr/drive")
         self.declare_parameter("controller_dwa_output_topic", "/dwa/drive")
 
         self.joy_topic = self.get_parameter("joy_topic").value
         self.selector_topic = self.get_parameter("selector_topic").value
         self.drive_topic = self.get_parameter("drive_topic").value
-        self.enable_button_index = int(
-            self.get_parameter("enable_button_index").value)
+        self.enable_button_index = int(self.get_parameter("enable_button_index").value)
         self.controllers = self.get_parameter("controllers").value
-        self.default_controller = self.get_parameter(
-            "default_controller").value
+        self.default_controller = self.get_parameter("default_controller").value
 
         if not self.controllers:
             raise ValueError(
@@ -49,15 +47,16 @@ class ControlGateway(Node):
             )
 
         self.controller_topics: Dict[str, str] = {}
-        all_controller_keys = {param for param in self.get_parameters_by_prefix(
-            "").keys() if param.startswith("controller_")}
+        all_controller_keys = {
+            param
+            for param in self.get_parameters_by_prefix("").keys()
+            if param.startswith("controller_")
+        }
         for controller_name in self.controllers:
             key = f"controller_{controller_name}_output_topic"
 
             if key not in all_controller_keys:
-                raise ValueError(
-                    f"Missing parameter '{key}'"
-                )
+                raise ValueError(f"Missing parameter '{key}'")
 
             topic_name = self.get_parameter(key).value
             if not isinstance(topic_name, str) or not topic_name:
@@ -114,10 +113,8 @@ class ControlGateway(Node):
         self.get_logger().info(f"  joy_topic: {self.joy_topic}")
         self.get_logger().info(f"  selector_topic: {self.selector_topic}")
         self.get_logger().info(f"  drive_topic: {self.drive_topic}")
-        self.get_logger().info(
-            f"  enable_button_index: {self.enable_button_index}")
-        self.get_logger().info(
-            f"  selected_controller: {self.selected_controller}")
+        self.get_logger().info(f"  enable_button_index: {self.enable_button_index}")
+        self.get_logger().info(f"  selected_controller: {self.selected_controller}")
         self.get_logger().info(f"  controllers: {self.controllers}")
         for name, topic in self.controller_topics.items():
             self.get_logger().info(f"    {name} -> {topic}")
@@ -154,6 +151,9 @@ class ControlGateway(Node):
             self.get_logger().info(
                 f"Selected controller changed to '{self.selected_controller}'"
             )
+
+        if self.selected_controller == "teleop":
+            self.reset_ackermann_command()
 
     def controller_callback(self, controller_name: str, msg) -> None:
         if not self.enabled:
