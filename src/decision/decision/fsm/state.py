@@ -27,11 +27,17 @@ class State(ABC):
     """
 
     _state_type: StateType
+    _minimum_time_in_state: float = 0.0
 
     @property
     def state_type(self) -> StateType:
         """Get the state type."""
         return self._state_type
+
+    @property
+    def minimum_time_in_state(self) -> float:
+        """Get the minimum time (in seconds) that must be spent in this state before transitioning."""
+        return self._minimum_time_in_state
 
     @abstractmethod
     def transition(self, objects: Collection | None = None) -> StateType:
