@@ -3,7 +3,7 @@ from typing import Collection, Any, Optional
 from decision.fsm.state import State, StateType
 
 
-class LQROnlyState(State):
+class LqrOnlyState(State):
     """LQR (Linear Quadratic Regulator) state.
 
     If any object is detected (non-empty `objects`), transition to

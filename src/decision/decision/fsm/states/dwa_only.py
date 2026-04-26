@@ -3,7 +3,7 @@ from typing import Collection, Any, Optional
 from decision.fsm.state import State, StateType
 
 
-class DWAOnlyState(State):
+class DwaOnlyState(State):
     """DWA (Differential Drive) state.
 
     If any object is detected (non-empty `objects`), transition to
