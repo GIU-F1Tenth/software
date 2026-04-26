@@ -4,6 +4,7 @@ from functools import partial
 import importlib
 from typing import Dict, Optional, Type
 
+import time
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Joy
@@ -33,6 +34,7 @@ class ControlGateway(Node):
         self.manual_auto_swap_topic = self.get_parameter("manual_auto_swap_topic").value
         self.default_controller = self.get_parameter("default_controller").value
 
+        self.controller_subs = []
         self.__discover_controllers()
 
         self.enabled = False
@@ -74,15 +76,6 @@ class ControlGateway(Node):
             10,
         )
 
-        self.controller_subs = []
-        for controller_name in self.controllers:
-            sub = self.create_subscription(
-                AckermannDriveStamped,
-                f"/{controller_name}/drive",
-                partial(self.controller_callback, controller_name),
-                10,
-            )
-            self.controller_subs.append(sub)
 
         self.get_logger().info("control_gateway started")
         self.get_logger().info(f"  joy_topic: {self.joy_topic}")
@@ -93,6 +86,15 @@ class ControlGateway(Node):
         self.get_logger().info(f"  controllers: {self.controllers}")
         for name in self.controllers:
             self.get_logger().info(f"    {name} -> /{name}/drive")
+
+    def __add_controller_sub(self, controller_name: str) -> None:
+        sub = self.create_subscription(
+                AckermannDriveStamped,
+                f"/{controller_name}/drive",
+                partial(self.controller_callback, controller_name),
+                10,
+        )
+        self.controller_subs.append(sub)
 
     def manual_auto_swap_callback(self, msg: Bool) -> None:
         if msg.data:
@@ -115,12 +117,15 @@ class ControlGateway(Node):
 
                 if controller_name and controller_name not in self.controllers:
                     self.controllers.append(controller_name)
+                    self.__add_controller_sub(controller_name)
 
         if not self.controllers:
-            raise ValueError(
+            self.get_logger().warn(
                 "No controllers discovered. "
                 "You must provide topics in the form of '/<controller_name>/drive."
             )
+            time.sleep(2.0) 
+            self.__discover_controllers()
 
     def joy_callback(self, msg: Joy) -> None:
         if self.enable_button_index < 0:
@@ -144,6 +149,7 @@ class ControlGateway(Node):
         requested = msg.data.strip()
 
         if requested not in self.controllers:
+            self.__discover_controllers() 
             self.get_logger().warn(
                 f"Received unknown controller '{requested}'. "
                 f"Valid options: {self.controllers}",
