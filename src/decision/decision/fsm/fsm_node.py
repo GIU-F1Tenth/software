@@ -103,7 +103,7 @@ class FSMNode(Node):
         )
 
     def objects_callback(self, msg):
-        self.fsm.run_once(objects=msg.markers)
+        self.fsm.run_once(objects=msg.markers[1:])
         state_str = self.fsm.current_state.state_type.value
         self.get_logger().info(
             f"Current FSM state: {state_str}", throttle_duration_sec=1.0
