@@ -77,13 +77,13 @@ class SimpleFSM(FSM):
         if next_type not in self._state_by_type:
             raise ValueError(f"state {next_type!r} is not present in FSM pool")
 
-        if self.__should_swith_state(next_type, elapsed_time):
+        if self.__should_switch_state(next_type, elapsed_time):
             self.__state_time = time.perf_counter()
             self._current_state = self._state_by_type[next_type]
             
         return elapsed_time 
     
-    def __should_swith_state(self, next_type: StateType, elapsed_time: float) -> bool:
+    def __should_switch_state(self, next_type: StateType, elapsed_time: float) -> bool:
         if next_type != self._current_state.state_type and elapsed_time > self._current_state.minimum_time_in_state:
             return True
         return False
