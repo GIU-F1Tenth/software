@@ -108,10 +108,10 @@ class ControlGateway(Node):
     def __discover_controllers(self) -> None:
         self.controllers: list[str] = []
         graph = self.get_topic_names_and_types()
-
         for topic_name, _ in graph:
             if topic_name.endswith("/drive"):
                 controller_name = topic_name.replace("/drive", "")
+                controller_name = controller_name.lstrip("/")
 
                 if controller_name and controller_name not in self.controllers:
                     self.controllers.append(controller_name)
@@ -119,7 +119,7 @@ class ControlGateway(Node):
         if not self.controllers:
             raise ValueError(
                 "No controllers discovered. "
-                "You must provide topics in the form of '/controller_<name>_output_topic'."
+                "You must provide topics in the form of '/<controller_name>/drive."
             )
 
     def joy_callback(self, msg: Joy) -> None:
@@ -171,10 +171,10 @@ class ControlGateway(Node):
 
     def reset_ackermann_command(self) -> None:
         zero_command = AckermannDriveStamped()
-        zero_command.drive.speed = 0
-        zero_command.drive.acceleration = 0
-        zero_command.drive.steering_angle = 0
-        zero_command.drive.steering_angle_velocity = 0
+        zero_command.drive.speed = 0.0
+        zero_command.drive.acceleration = 0.0
+        zero_command.drive.steering_angle = 0.0
+        zero_command.drive.steering_angle_velocity = 0.0
         self.drive_pub.publish(zero_command)
 
 
