@@ -42,10 +42,11 @@ class ControlGateway(Node):
 
         if self.default_controller:
             if self.default_controller not in self.controllers:
-                raise ValueError(
+                self.get_logger().warn(
                     f"default_controller '{self.default_controller}' "
                     f"is not in controllers list: {self.controllers}"
                 )
+                self.__discover_controllers()
             self.selected_controller = self.default_controller
         else:
             self.selected_controller = self.controllers[0]
