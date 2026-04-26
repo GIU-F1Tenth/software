@@ -34,7 +34,7 @@ class TeleopSwitcher(Node):
         )
 
         self.last_pressed = 0
-        self.manual_mode = True
+        self.manual_mode = False
 
     def joy_callback(self, msg: Joy) -> None:
         current_time = time()
