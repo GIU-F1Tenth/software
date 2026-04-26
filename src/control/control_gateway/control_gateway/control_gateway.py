@@ -21,50 +21,14 @@ class ControlGateway(Node):
         self.declare_parameter("selector_topic", "/control_selector")
         self.declare_parameter("drive_topic", "/drive")
         self.declare_parameter("enable_button_index", 4)
-        self.declare_parameter(
-            "controllers", ["lqr", "gap_following", "pure_pursuit", "teleop", "dwa"]
-        )
-        self.declare_parameter("default_controller", "lqr")
-        self.declare_parameter("controller_teleop_output_topic", "/teleop/drive")
-        self.declare_parameter("controller_pure_pursuit_output_topic", "/pp/drive")
-        self.declare_parameter(
-            "controller_gap_following_output_topic", "/gap_following/drive"
-        )
-        self.declare_parameter("controller_lqr_output_topic", "/lqr/drive")
-        self.declare_parameter("controller_dwa_output_topic", "/dwa/drive")
 
         self.joy_topic = self.get_parameter("joy_topic").value
         self.selector_topic = self.get_parameter("selector_topic").value
         self.drive_topic = self.get_parameter("drive_topic").value
         self.enable_button_index = int(self.get_parameter("enable_button_index").value)
-        self.controllers = self.get_parameter("controllers").value
-        self.default_controller = self.get_parameter("default_controller").value
+        self.default_controller = "teleop"
 
-        if not self.controllers:
-            raise ValueError(
-                "Parameter 'controllers' is empty. "
-                "You must provide at least one controller name."
-            )
-
-        self.controller_topics: Dict[str, str] = {}
-        all_controller_keys = {
-            param
-            for param in self.get_parameters_by_prefix("").keys()
-            if param.startswith("controller_")
-        }
-        for controller_name in self.controllers:
-            key = f"controller_{controller_name}_output_topic"
-
-            if key not in all_controller_keys:
-                raise ValueError(f"Missing parameter '{key}'")
-
-            topic_name = self.get_parameter(key).value
-            if not isinstance(topic_name, str) or not topic_name:
-                raise ValueError(
-                    f"Invalid topic for controller '{controller_name}': {topic_name}"
-                )
-
-            self.controller_topics[controller_name] = topic_name
+        self.__discover_controllers()
 
         self.enabled = False
         self.selected_controller: Optional[str] = None
@@ -100,10 +64,10 @@ class ControlGateway(Node):
         )
 
         self.controller_subs = []
-        for controller_name, topic_name in self.controller_topics.items():
+        for controller_name in self.controllers:
             sub = self.create_subscription(
                 AckermannDriveStamped,
-                topic_name,
+                f"/{controller_name}/drive",
                 partial(self.controller_callback, controller_name),
                 10,
             )
@@ -116,8 +80,25 @@ class ControlGateway(Node):
         self.get_logger().info(f"  enable_button_index: {self.enable_button_index}")
         self.get_logger().info(f"  selected_controller: {self.selected_controller}")
         self.get_logger().info(f"  controllers: {self.controllers}")
-        for name, topic in self.controller_topics.items():
-            self.get_logger().info(f"    {name} -> {topic}")
+        for name in self.controllers:
+            self.get_logger().info(f"    {name} -> /{name}/drive")
+
+    def __discover_controllers(self) -> None:
+        self.controllers: list[str] = []
+        graph = self.get_topic_names_and_types()
+
+        for topic_name, _ in graph:
+            if topic_name.endswith("/drive"):
+                controller_name = topic_name.replace("/drive", "")
+
+                if controller_name and controller_name not in self.controllers:
+                    self.controllers.append(controller_name)
+
+        if not self.controllers:
+            raise ValueError(
+                "No controllers discovered. "
+                "You must provide topics in the form of '/controller_<name>_output_topic'."
+            )
 
     def joy_callback(self, msg: Joy) -> None:
         if self.enable_button_index < 0:
