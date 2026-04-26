@@ -8,6 +8,7 @@ class StateType(Enum):
 
     PP = "pure_pursuit"
     GF = "gap_following"
+    PP_TRAILING = "pp_trailing"
 
 
 class State(ABC):
