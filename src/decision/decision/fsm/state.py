@@ -6,9 +6,16 @@ from typing import Collection
 class StateType(Enum):
     """Enumeration of possible FSM state types."""
 
+    # Normal states
     PP = "pure_pursuit"
     GF = "gap_following"
     PP_TRAILING = "pp_trailing"
+
+    # Single state modes for testing
+    PP_ONLY = "pure_pursuit_only"
+    GF_ONLY = "gap_following_only"
+    DWA_ONLY = "dwa_only"
+    LQR_ONLY = "lqr_only"
 
 
 class State(ABC):
