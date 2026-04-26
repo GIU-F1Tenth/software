@@ -7,7 +7,7 @@ from typing import Dict, Optional, Type
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Joy
-from std_msgs.msg import String
+from std_msgs.msg import String, Bool
 
 
 from ackermann_msgs.msg import AckermannDriveStamped
@@ -21,12 +21,17 @@ class ControlGateway(Node):
         self.declare_parameter("selector_topic", "/control_selector")
         self.declare_parameter("drive_topic", "/drive")
         self.declare_parameter("enable_button_index", 4)
+        self.declare_parameter(
+            "manual_auto_swap_topic", "/control_gateway/switch_manual_auto"
+        )
+        self.declare_parameter("default_controller", "pure_pursuit")
 
         self.joy_topic = self.get_parameter("joy_topic").value
         self.selector_topic = self.get_parameter("selector_topic").value
         self.drive_topic = self.get_parameter("drive_topic").value
         self.enable_button_index = int(self.get_parameter("enable_button_index").value)
-        self.default_controller = "teleop"
+        self.manual_auto_swap_topic = self.get_parameter("manual_auto_swap_topic").value
+        self.default_controller = self.get_parameter("default_controller").value
 
         self.__discover_controllers()
 
@@ -62,6 +67,12 @@ class ControlGateway(Node):
             self.selector_callback,
             10,
         )
+        self.manual_auto_swap_sub = self.create_subscription(
+            Bool,
+            self.manual_auto_swap_topic,
+            self.manual_auto_swap_callback,
+            10,
+        )
 
         self.controller_subs = []
         for controller_name in self.controllers:
@@ -82,6 +93,17 @@ class ControlGateway(Node):
         self.get_logger().info(f"  controllers: {self.controllers}")
         for name in self.controllers:
             self.get_logger().info(f"    {name} -> /{name}/drive")
+
+    def manual_auto_swap_callback(self, msg: Bool) -> None:
+        if msg.data:
+            self.selected_controller = "teleop"
+            self.get_logger().info("Manual/Auto swap: switched to 'teleop' controller")
+            self.reset_ackermann_command()
+        else:
+            self.selected_controller = self.default_controller
+            self.get_logger().info(
+                f"Manual/Auto swap: switched to default controller '{self.default_controller}'"
+            )
 
     def __discover_controllers(self) -> None:
         self.controllers: list[str] = []
@@ -117,6 +139,8 @@ class ControlGateway(Node):
         self.enabled = bool(msg.buttons[self.enable_button_index])
 
     def selector_callback(self, msg: String) -> None:
+        if self.selected_controller == "teleop":
+            return
         requested = msg.data.strip()
 
         if requested not in self.controllers:
