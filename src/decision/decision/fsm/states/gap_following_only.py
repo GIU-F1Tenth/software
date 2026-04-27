@@ -1,6 +1,6 @@
 from typing import Collection, Any, Optional
 
-from decision.fsm.state import State, StateType
+from decision.fsm.state import State, StateType, StateTraits
 
 
 class GapFollowingOnlyState(State):
@@ -10,11 +10,13 @@ class GapFollowingOnlyState(State):
     `StateType.REACTIVE`. Otherwise remain in `StateType.GF_ONLY`.
     """
 
-    _state_type = StateType.GF_ONLY
+    _state_type = StateType(
+        name="gap_following_only", state_traits=StateTraits.GAP_FOLLOWING
+    )
 
     @property
     def state_type(self) -> StateType:
         return self._state_type
 
     def transition(self, objects: Optional[Collection[Any]] = None) -> StateType:
-        return StateType.GF_ONLY
+        return self._state_type

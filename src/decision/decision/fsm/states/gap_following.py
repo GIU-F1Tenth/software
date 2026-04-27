@@ -1,6 +1,6 @@
 from typing import Collection, Any, Optional
 
-from decision.fsm.state import State, StateType
+from decision.fsm.state import State, StateType, StateTraits
 
 
 class GapFollowingState(State):
@@ -10,8 +10,12 @@ class GapFollowingState(State):
     Otherwise transition to `StateType.FP`.
     """
 
-    _state_type = StateType.GF
+    _state_type = StateType(
+        name="gap_following", state_traits=StateTraits.GAP_FOLLOWING
+    )
     _minimum_time_in_state = 1.5
+
+    _pp_state = StateType(name="pure_pursuit", state_traits=StateTraits.PURE_PURSUIT)
 
     @property
     def state_type(self) -> StateType:
@@ -19,5 +23,5 @@ class GapFollowingState(State):
 
     def transition(self, objects: Optional[Collection[Any]] = None) -> StateType:
         if objects is None or len(objects) == 0:
-            return StateType.PP
-        return StateType.GF
+            return self._pp_state
+        return self._state_type

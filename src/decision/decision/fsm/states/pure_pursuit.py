@@ -1,6 +1,6 @@
 from typing import Collection, Any, Optional
 
-from decision.fsm.state import State, StateType
+from decision.fsm.state import State, StateType, StateTraits
 
 
 class PurePursuitState(State):
@@ -10,7 +10,11 @@ class PurePursuitState(State):
     `StateType.REACTIVE`. Otherwise remain in `StateType.FP`.
     """
 
-    _state_type = StateType.PP
+    _state_type = StateType(name="pure_pursuit", state_traits=StateTraits.PURE_PURSUIT)
+
+    _gap_following = StateType(
+        name="gap_following", state_traits=StateTraits.GAP_FOLLOWING
+    )
 
     @property
     def state_type(self) -> StateType:
@@ -18,5 +22,5 @@ class PurePursuitState(State):
 
     def transition(self, objects: Optional[Collection[Any]] = None) -> StateType:
         if objects is not None and len(objects) > 0:
-            return StateType.GF
-        return StateType.PP
+            return self._gap_following
+        return self._state_type

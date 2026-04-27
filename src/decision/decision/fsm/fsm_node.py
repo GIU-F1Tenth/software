@@ -2,7 +2,7 @@ from collections.abc import Collection
 from importlib import import_module
 from typing import Dict, Optional
 
-from decision.fsm.state import State, StateType
+from decision.fsm.state import State, StateType, StateTraits
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
@@ -28,14 +28,14 @@ class SimpleFSM(FSM):
             state_types: collection of StateType values to load into the FSM.
             initial: the initial StateType to set as the current state.
         """
-        self._state_by_type: Dict[StateType, State] = {}
+        self._state_by_state_traits: Dict[StateTraits, State] = {}
         self.__state_time = time.perf_counter()
 
         if initial not in state_types:
             raise ValueError("initial state must be one of the provided state_types")
 
         for st in state_types:
-            module_name = st.value
+            module_name = st.name
             class_name = (
                 "".join(part.capitalize() for part in module_name.split("_")) + "State"
             )
@@ -48,9 +48,9 @@ class SimpleFSM(FSM):
 
             if not isinstance(instance, State):
                 raise TypeError(f"state {st!r} instance is not a subclass of State")
-            self._state_by_type[st] = instance
+            self._state_by_state_traits[st.state_traits] = instance
 
-        self._current_state: State = self._state_by_type[initial]
+        self._current_state: State = self._state_by_state_traits[initial.state_traits]
 
     @property
     def current_state(self) -> State:
@@ -74,17 +74,20 @@ class SimpleFSM(FSM):
 
         if not isinstance(next_type, StateType):
             raise ValueError("transition must return a StateType")
-        if next_type not in self._state_by_type:
+        if next_type.state_traits not in self._state_by_state_traits:
             raise ValueError(f"state {next_type!r} is not present in FSM pool")
 
         if self.__should_switch_state(next_type, elapsed_time):
             self.__state_time = time.perf_counter()
-            self._current_state = self._state_by_type[next_type]
-            
-        return elapsed_time 
-    
+            self._current_state = self._state_by_state_traits[next_type.state_traits]
+
+        return elapsed_time
+
     def __should_switch_state(self, next_type: StateType, elapsed_time: float) -> bool:
-        if next_type != self._current_state.state_type and elapsed_time > self._current_state.minimum_time_in_state:
+        if (
+            next_type != self._current_state.state_type
+            and elapsed_time > self._current_state.minimum_time_in_state
+        ):
             return True
         return False
 

@@ -1,6 +1,6 @@
 from typing import Collection, Any, Optional
 
-from decision.fsm.state import State, StateType
+from decision.fsm.state import State, StateType, StateTraits
 
 
 class PurePursuitOnlyState(State):
@@ -10,11 +10,13 @@ class PurePursuitOnlyState(State):
     `StateType.REACTIVE`. Otherwise remain in `StateType.FP`.
     """
 
-    _state_type = StateType.PP_ONLY
+    _state_type = StateType(
+        name="pure_pursuit_only", state_traits=StateTraits.PURE_PURSUIT
+    )
 
     @property
     def state_type(self) -> StateType:
         return self._state_type
 
     def transition(self, objects: Optional[Collection[Any]] = None) -> StateType:
-        return StateType.PP_ONLY
+        return self._state_type
