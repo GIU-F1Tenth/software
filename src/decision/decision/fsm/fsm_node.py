@@ -21,7 +21,7 @@ class SimpleFSM(FSM):
     with a trailing `State` (for example `IdleState`).
     """
 
-    def __init__(self, state_types: Collection[StateType], initial: StateType):
+    def __init__(self, state_types: Collection[str], initial: str):
         """Load state instances and set the initial current state.
 
         Args:
@@ -35,7 +35,7 @@ class SimpleFSM(FSM):
             raise ValueError("initial state must be one of the provided state_types")
 
         for st in state_types:
-            module_name = st.name
+            module_name = st
             class_name = (
                 "".join(part.capitalize() for part in module_name.split("_")) + "State"
             )
@@ -43,14 +43,17 @@ class SimpleFSM(FSM):
                 module = import_module(f"decision.fsm.states.{module_name}")
                 cls = getattr(module, class_name)
                 instance = cls()
+                
+                if st == initial:
+                    initial_state = instance
             except Exception as exc:
                 raise ImportError(f"failed to load state {st!r}: {exc}") from exc
 
             if not isinstance(instance, State):
                 raise TypeError(f"state {st!r} instance is not a subclass of State")
-            self._state_by_state_traits[st.state_traits] = instance
+            self._state_by_state_traits[instance.state_type.state_traits] = instance
 
-        self._current_state: State = self._state_by_state_traits[initial.state_traits]
+        self._current_state: State = self._state_by_state_traits[initial_state.state_type.state_traits]
 
     @property
     def current_state(self) -> State:
@@ -108,10 +111,7 @@ class FSMNode(Node):
         objects_topic = self.get_parameter("objects_topic").value
         output_topic = self.get_parameter("output_topic").value
 
-        state_types = [StateType(s) for s in states_list]
-        initial = StateType(initial_state)
-
-        self.fsm = SimpleFSM(state_types, initial)
+        self.fsm = SimpleFSM(states_list, initial_state)
 
         self.publisher = self.create_publisher(String, output_topic, 10)
 
@@ -121,7 +121,7 @@ class FSMNode(Node):
 
     def objects_callback(self, msg):
         self.fsm.run_once(objects=msg.markers[1:])
-        state_str = self.fsm.current_state.state_type.value
+        state_str = self.fsm.current_state.state_type.name
         self.get_logger().info(
             f"Current FSM state: {state_str}", throttle_duration_sec=1.0
         )
