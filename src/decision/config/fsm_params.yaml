@@ -6,3 +6,4 @@ fsm_node:
     initial_state: pure_pursuit
     objects_topic: objects
     output_topic: fsm_state
+    trailing_topic: trailing

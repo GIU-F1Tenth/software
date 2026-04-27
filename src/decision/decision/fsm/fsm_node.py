@@ -5,7 +5,7 @@ from typing import Dict, Optional
 from decision.fsm.state import State, StateType, StateTraits
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String
+from std_msgs.msg import String, Bool
 from visualization_msgs.msg import MarkerArray
 
 import time
@@ -105,15 +105,18 @@ class FSMNode(Node):
         self.declare_parameter("initial_state", "idle")
         self.declare_parameter("objects_topic", "objects")
         self.declare_parameter("output_topic", "fsm_state")
+        self.declare_parameter("trailing_topic", "trailing")
 
         states_list = self.get_parameter("states").value
         initial_state = self.get_parameter("initial_state").value
         objects_topic = self.get_parameter("objects_topic").value
-        output_topic = self.get_parameter("output_topic").value
+        control_output_topic = self.get_parameter("output_topic").value
+        trailing_topic = self.get_parameter("trailing_topic").value
 
         self.fsm = SimpleFSM(states_list, initial_state)
 
-        self.publisher = self.create_publisher(String, output_topic, 10)
+        self.control_publisher = self.create_publisher(String, control_output_topic, 10)
+        self.trailing_topic = self.create_publisher(Bool, trailing_topic, 10)
 
         self.subscription = self.create_subscription(
             MarkerArray, objects_topic, self.objects_callback, 10
@@ -125,9 +128,13 @@ class FSMNode(Node):
         self.get_logger().info(
             f"Current FSM state: {state_str}", throttle_duration_sec=1.0
         )
-        output_msg = String()
-        output_msg.data = state_str
-        self.publisher.publish(output_msg)
+        control_output_msg = String()
+        control_output_msg.data = state_str
+        self.control_publisher.publish(control_output_msg)
+        
+        trail_output_msg = Bool()
+        trail_output_msg.data = StateTraits.TRAILING in self.fsm.current_state.state_type.state_traits
+        self.trailing_topic.publish(trail_output_msg)
 
 
 def main(args=None):
