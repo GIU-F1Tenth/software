@@ -16,12 +16,15 @@ def curve_track(radius: float = 3.0, sweep_deg: float = 90.0,
                 start_theta: float = 0.0) -> List[Dict]:
     """
     Circular arc.
-    Center is at (start_x, start_y + radius) for a left-turning arc.
+    Center is radius away, perpendicular-left of the current heading.
     """
     sweep = np.radians(sweep_deg)
-    angles = np.linspace(-np.pi / 2, -np.pi / 2 + sweep, n_points)
-    cx = start_x
-    cy = start_y + radius
+    # Center is radius away, perpendicular-left of the current heading
+    cx = start_x + radius * np.cos(start_theta + np.pi / 2)
+    cy = start_y + radius * np.sin(start_theta + np.pi / 2)
+    # Arc starts pointing back toward start_x,start_y from the center
+    start_angle = start_theta - np.pi / 2
+    angles = np.linspace(start_angle, start_angle + sweep, n_points)
     waypoints = []
     for a in angles:
         x = cx + radius * np.cos(a)

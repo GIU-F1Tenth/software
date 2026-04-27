@@ -33,12 +33,21 @@ import numpy as np
 
 
 L_DEFAULT = 0.33       # F1TENTH wheelbase [m]
-DELTA_MAX = 0.4189     # max steering angle [rad] (24 deg)
+DELTA_MAX = 0.41888  # max steering angle [rad] = 24 deg exactly
 A_MAX = 5.0            # max acceleration magnitude [m/s^2]
 V_MAX = 8.0            # max speed [m/s]
 
 
 class BicycleModel:
+    """
+    Kinematic bicycle model for F1TENTH.
+
+    IMPORTANT: This class does NOT clip inputs to physical limits.
+    Callers (LQR, MPC, Stanley) are responsible for clamping
+    delta to [-DELTA_MAX, DELTA_MAX] and a to [-A_MAX, A_MAX]
+    before calling step_rk4() or linearize().
+    """
+
     def __init__(self, L: float = L_DEFAULT, dt: float = 0.02):
         self.L = L
         self.dt = dt

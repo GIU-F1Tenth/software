@@ -42,6 +42,20 @@ def test_normalize_angle():
     assert abs(model.normalize_angle(-2 * np.pi - 0.1) - (-0.1)) < 1e-9
 
 
+def test_linearize_values():
+    """Jacobian entries should match analytic partial derivatives."""
+    model = BicycleModel(L=0.33, dt=0.02)
+    v, theta, delta = 3.0, 0.0, 0.0
+    x_ref = np.array([0.0, 0.0, theta, v])
+    u_ref = np.array([delta, 0.0])
+    A_d, B_d = model.linearize(x_ref, u_ref)
+    # A_d = I + A*dt, check off-diagonal entries
+    assert abs(A_d[0, 3] - np.cos(theta) * model.dt) < 1e-10  # df_px/dv * dt
+    assert abs(A_d[1, 2] - v * np.cos(theta) * model.dt) < 1e-10  # df_py/dtheta * dt
+    assert abs(B_d[2, 0] - (v / (model.L * np.cos(delta)**2)) * model.dt) < 1e-10
+    assert abs(B_d[3, 1] - model.dt) < 1e-10
+
+
 def test_front_axle_pos():
     model = BicycleModel(L=0.33)
     x = np.array([0.0, 0.0, 0.0, 2.0])
