@@ -50,7 +50,7 @@ class State(ABC):
         return self._minimum_time_in_state
 
     @abstractmethod
-    def transition(self, objects: Collection | None = None) -> StateType:
+    def transition(self, objects: Collection | None = None) -> StateTraits:
         """
         Determine the next state to transition to.
 

@@ -70,22 +70,24 @@ class SimpleFSM(FSM):
             ValueError: if the returned StateType is not part of the pool.
         """
         elapsed_time = time.perf_counter() - self.__state_time
-        next_type = self._current_state.transition(objects=objects)
+        next_type_traits = self._current_state.transition(objects=objects)
 
-        if not isinstance(next_type, StateType):
+        if not isinstance(next_type_traits, StateTraits):
             raise ValueError("transition must return a StateType")
-        if next_type.state_traits not in self._state_by_state_traits:
-            raise ValueError(f"state {next_type!r} is not present in FSM pool")
+        if next_type_traits not in self._state_by_state_traits:
+            raise ValueError(f"state {next_type_traits!r} is not present in FSM pool")
 
-        if self.__should_switch_state(next_type, elapsed_time):
+        if self.__should_switch_state(next_type_traits, elapsed_time):
             self.__state_time = time.perf_counter()
-            self._current_state = self._state_by_state_traits[next_type.state_traits]
+            self._current_state = self._state_by_state_traits[next_type_traits]
 
         return elapsed_time
 
-    def __should_switch_state(self, next_type: StateType, elapsed_time: float) -> bool:
+    def __should_switch_state(
+        self, next_type: StateTraits, elapsed_time: float
+    ) -> bool:
         if (
-            next_type != self._current_state.state_type
+            next_type != self._current_state.state_type.state_traits
             and elapsed_time > self._current_state.minimum_time_in_state
         ):
             return True

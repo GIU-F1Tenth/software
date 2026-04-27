@@ -20,7 +20,7 @@ class PurePursuitState(State):
     def state_type(self) -> StateType:
         return self._state_type
 
-    def transition(self, objects: Optional[Collection[Any]] = None) -> StateType:
+    def transition(self, objects: Optional[Collection[Any]] = None) -> StateTraits:
         if objects is not None and len(objects) > 0:
-            return self._gap_following
-        return self._state_type
+            return StateTraits.GAP_FOLLOWING
+        return self._state_type.state_traits

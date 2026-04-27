@@ -18,5 +18,5 @@ class PurePursuitOnlyState(State):
     def state_type(self) -> StateType:
         return self._state_type
 
-    def transition(self, objects: Optional[Collection[Any]] = None) -> StateType:
-        return self._state_type
+    def transition(self, objects: Optional[Collection[Any]] = None) -> StateTraits:
+        return self._state_type.state_traits

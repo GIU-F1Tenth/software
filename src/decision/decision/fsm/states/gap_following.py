@@ -15,13 +15,11 @@ class GapFollowingState(State):
     )
     _minimum_time_in_state = 1.5
 
-    _pp_state = StateType(name="pure_pursuit", state_traits=StateTraits.PURE_PURSUIT)
-
     @property
     def state_type(self) -> StateType:
         return self._state_type
 
-    def transition(self, objects: Optional[Collection[Any]] = None) -> StateType:
+    def transition(self, objects: Optional[Collection[Any]] = None) -> StateTraits:
         if objects is None or len(objects) == 0:
-            return self._pp_state
-        return self._state_type
+            return StateTraits.PURE_PURSUIT
+        return self._state_type.state_traits
