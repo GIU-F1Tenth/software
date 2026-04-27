@@ -1,21 +1,31 @@
 from abc import ABC, abstractmethod
-from enum import Enum
+from enum import IntFlag, auto
 from typing import Collection
 
+from dataclasses import dataclass
 
-class StateType(Enum):
+
+class StateTraits(IntFlag):
+    PURE_PURSUIT = auto()
+    GAP_FOLLOWING = auto()
+    DWA = auto()
+    LQR = auto()
+    TRAILING = auto()
+    STOP = auto()
+
+
+@dataclass(frozen=True)
+class StateType:
     """Enumeration of possible FSM state types."""
 
-    # Normal states
-    PP = "pure_pursuit"
-    GF = "gap_following"
-    PP_TRAILING = "pp_trailing"
+    name: str
+    state_traits: StateTraits
 
-    # Single state modes for testing
-    PP_ONLY = "pure_pursuit_only"
-    GF_ONLY = "gap_following_only"
-    DWA_ONLY = "dwa_only"
-    LQR_ONLY = "lqr_only"
+    def __eq__(self, other: object):
+        if not isinstance(other, StateType):
+            return NotImplemented
+
+        return self.state_traits == other.state_traits
 
 
 class State(ABC):
