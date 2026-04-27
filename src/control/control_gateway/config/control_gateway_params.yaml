@@ -4,6 +4,8 @@ control_gateway:
     selector_topic: "/control_selector"
     drive_topic: "/drive"
     manual_auto_swap_topic: "/control_gateway/switch_manual_auto"
+    speed_cap_topic: "/speed_cap"
+    trailing_topic: "/trailing"
     default_controller: "pure_pursuit"
 
     enable_button_index: 4

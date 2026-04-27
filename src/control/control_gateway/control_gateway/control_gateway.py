@@ -8,7 +8,7 @@ import time
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Joy
-from std_msgs.msg import String, Bool
+from std_msgs.msg import String, Bool, Float64
 
 
 from ackermann_msgs.msg import AckermannDriveStamped
@@ -26,6 +26,8 @@ class ControlGateway(Node):
             "manual_auto_swap_topic", "/control_gateway/switch_manual_auto"
         )
         self.declare_parameter("default_controller", "pure_pursuit")
+        self.declare_parameter("trailing_topic", "/trailing")
+        self.declare_parameter("speed_cap_topic", "/speed_cap")
 
         self.joy_topic = self.get_parameter("joy_topic").value
         self.selector_topic = self.get_parameter("selector_topic").value
@@ -33,11 +35,15 @@ class ControlGateway(Node):
         self.enable_button_index = int(self.get_parameter("enable_button_index").value)
         self.manual_auto_swap_topic = self.get_parameter("manual_auto_swap_topic").value
         self.default_controller = self.get_parameter("default_controller").value
+        self.trailing_topic = self.get_parameter("trailing_topic").value
+        self.speed_cap_topic = self.get_parameter("speed_cap_topic").value
 
         self.controller_subs = []
         self.__discover_controllers()
 
+        self.capped_speed = -1
         self.enabled = False
+        self.should_trail = False
         self.selected_controller: Optional[str] = None
 
         if self.default_controller:
@@ -76,6 +82,18 @@ class ControlGateway(Node):
             self.manual_auto_swap_callback,
             10,
         )
+        self.trailing_sub = self.create_subscription(
+            Bool, 
+            self.trailing_topic,
+            self.trailing_callback, 
+            10
+        )
+        self.speed_cap_sub = self.create_subscription(
+            Float64, 
+            self.speed_cap_topic,
+            self.speed_cap_callback,
+            10
+        )
 
         self.get_logger().info("control_gateway started")
         self.get_logger().info(f"  joy_topic: {self.joy_topic}")
@@ -95,6 +113,12 @@ class ControlGateway(Node):
             10,
         )
         self.controller_subs.append(sub)
+
+    def speed_cap_callback(self, msg: Float64) -> None: 
+        self.capped_speed = msg.data
+
+    def trailing_callback(self, msg: Bool) -> None: 
+        self.should_trail = msg.data
 
     def manual_auto_swap_callback(self, msg: Bool) -> None:
         if msg.data:
@@ -169,12 +193,15 @@ class ControlGateway(Node):
         if self.selected_controller == "teleop":
             self.reset_ackermann_command()
 
-    def controller_callback(self, controller_name: str, msg) -> None:
+    def controller_callback(self, controller_name: str, msg: AckermannDriveStamped) -> None:
         if not self.enabled:
             return
 
         if controller_name != self.selected_controller:
             return
+
+        if self.should_trail and self.capped_speed > 0:
+            msg.drive.speed = min(msg.drive.speed, self.capped_speed)
 
         self.drive_pub.publish(msg)
 
