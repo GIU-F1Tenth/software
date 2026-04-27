@@ -24,7 +24,11 @@ Computed as:
     e_fa = dot(p_fa - p_r, perp_vec)
 
 ## Control Law
-    delta = psi_e + arctan(k * e_fa / (v + eps))
+    delta = psi_e - arctan(k * e_fa / (v + eps))
+
+Note: the minus sign follows from the LEFT-normal convention for e_fa above.
+e_fa > 0 means the vehicle is to the LEFT of track → needs a RIGHT correction → negative delta.
+With the right-normal convention (e_fa positive = right of track), the formula would use a plus sign.
 
 - k: cross-track gain (tunable). Larger k = more aggressive CTE correction.
 - eps = 1e-3: prevents division by zero at standstill.

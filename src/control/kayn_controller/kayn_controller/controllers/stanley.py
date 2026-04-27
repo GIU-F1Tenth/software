@@ -2,12 +2,15 @@
 Stanley Controller — see math/stanley.md for full derivation.
 
 Control law:
-    delta = psi_e + arctan(k * e_fa / (v + eps))
+    delta = psi_e - arctan(k * e_fa / (v + eps))
 
     psi_e  = track_heading - vehicle_heading    (heading error)
-    e_fa   = signed CTE at front axle           (positive = left of track)
+    e_fa   = signed CTE at front axle           (positive = LEFT of track, LEFT-normal convention)
     k      = cross-track gain
     eps    = 1e-3 (anti-div-by-zero at standstill)
+
+The minus sign is required because e_fa uses the LEFT-normal perp vector.
+e_fa > 0 (left of track) requires negative delta (steer right). Using plus sign would diverge.
 """
 
 import numpy as np

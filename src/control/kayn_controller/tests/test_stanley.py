@@ -6,8 +6,8 @@ from kayn_controller.controllers.stanley import StanleyController
 from simulation.track import straight_track
 
 
-def test_left_error_gives_positive_steering():
-    """Vehicle to the right of track (negative e_fa) -> positive delta (steer toward track)."""
+def test_right_of_track_gives_positive_steering():
+    """Vehicle to the right of track (y=-0.3, negative e_fa) -> positive delta (steer left toward track)."""
     model = BicycleModel()
     stanley = StanleyController(k=1.0, model=model)
     # Vehicle at y=-0.3 (right of track), track along x-axis
@@ -17,8 +17,8 @@ def test_left_error_gives_positive_steering():
     assert delta > 0.0, f"Expected positive delta for right-side error (steer left toward track), got {delta:.4f}"
 
 
-def test_right_error_gives_positive_steering():
-    """Vehicle to the left of track (positive e_fa) -> negative delta (steer toward track)."""
+def test_left_of_track_gives_negative_steering():
+    """Vehicle to the left of track (y=+0.3, positive e_fa) -> negative delta (steer right toward track)."""
     model = BicycleModel()
     stanley = StanleyController(k=1.0, model=model)
     x_curr = np.array([5.0, 0.3, 0.0, 2.0])
