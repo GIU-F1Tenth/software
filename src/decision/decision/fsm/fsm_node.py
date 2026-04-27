@@ -129,12 +129,26 @@ class FSMNode(Node):
             f"Current FSM state: {state_str}", throttle_duration_sec=1.0
         )
         control_output_msg = String()
-        control_output_msg.data = state_str
+        control_output_msg.data = self.__get_control_topic_from_current_state()
         self.control_publisher.publish(control_output_msg)
         
         trail_output_msg = Bool()
         trail_output_msg.data = StateTraits.TRAILING in self.fsm.current_state.state_type.state_traits
         self.trailing_topic.publish(trail_output_msg)
+        
+    def __get_control_topic_from_current_state(self) -> str:
+        current_state_traits = self.fsm.current_state.state_type.state_traits
+        if StateTraits.PURE_PURSUIT in current_state_traits:
+            return "pure_pursuit"
+        if StateTraits.GAP_FOLLOWING in current_state_traits: 
+            return "gap_following"
+        if StateTraits.LQR in current_state_traits: 
+            return "lqr"
+        if StateTraits.DWA in current_state_traits:
+            return "dwa"
+        return NotImplemented
+        
+        
 
 
 def main(args=None):
