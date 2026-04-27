@@ -77,7 +77,6 @@ class ControlGateway(Node):
             10,
         )
 
-
         self.get_logger().info("control_gateway started")
         self.get_logger().info(f"  joy_topic: {self.joy_topic}")
         self.get_logger().info(f"  selector_topic: {self.selector_topic}")
@@ -90,10 +89,10 @@ class ControlGateway(Node):
 
     def __add_controller_sub(self, controller_name: str) -> None:
         sub = self.create_subscription(
-                AckermannDriveStamped,
-                f"/{controller_name}/drive",
-                partial(self.controller_callback, controller_name),
-                10,
+            AckermannDriveStamped,
+            f"/{controller_name}/drive",
+            partial(self.controller_callback, controller_name),
+            10,
         )
         self.controller_subs.append(sub)
 
@@ -125,7 +124,7 @@ class ControlGateway(Node):
                 "No controllers discovered. "
                 "You must provide topics in the form of '/<controller_name>/drive."
             )
-            time.sleep(2.0) 
+            time.sleep(2.0)
             self.__discover_controllers()
 
     def joy_callback(self, msg: Joy) -> None:
@@ -144,13 +143,16 @@ class ControlGateway(Node):
 
         self.enabled = bool(msg.buttons[self.enable_button_index])
 
+        if not self.enabled:
+            self.reset_ackermann_command()
+
     def selector_callback(self, msg: String) -> None:
         if self.selected_controller == "teleop":
             return
         requested = msg.data.strip()
 
         if requested not in self.controllers:
-            self.__discover_controllers() 
+            self.__discover_controllers()
             self.get_logger().warn(
                 f"Received unknown controller '{requested}'. "
                 f"Valid options: {self.controllers}",
