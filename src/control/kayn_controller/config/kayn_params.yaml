@@ -26,6 +26,14 @@ kayn_controller_node:
     # --- Stanley ---
     stanley.k: 1.5          # cross-track gain
 
+    # --- FSM controller slots ---
+    # Each FSM state runs an independently chosen controller.
+    # Valid values: "stanley" | "lqr" | "mpc"
+    fsm.warmup_controller:   "stanley"
+    fsm.straight_controller: "lqr"
+    fsm.curve_controller:    "mpc"
+    fsm.fallback_controller: "stanley"
+
     # --- FSM / curvature ---
     fsm.enter_threshold: 0.10   # kappa to enter CURVE [rad/m]
     fsm.exit_threshold:  0.06   # kappa to leave CURVE [rad/m]

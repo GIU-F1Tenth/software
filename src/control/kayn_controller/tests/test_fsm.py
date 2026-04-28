@@ -86,6 +86,42 @@ def test_no_steering_jump_at_transition():
         x_curr = model.step_rk4(x_curr, u)
 
 
+def test_curve_slot_lqr_no_fallback(monkeypatch):
+    """curve_controller=lqr must never trigger FALLBACK even if MPC would time out."""
+    model = BicycleModel()
+    fsm = FSM(
+        lqr=LQRController(model),
+        mpc=MPCController(model),
+        stanley=StanleyController(model=model),
+        curvature_estimator=CurvatureEstimator(lookahead=10),
+        curve_ctrl='lqr',
+    )
+    fsm.state = KAYNState.CURVE
+    track = curve_track(radius=3.0, sweep_deg=180.0, v_ref=2.0, n_points=300)
+    x_curr = np.array([track[10]['x'], track[10]['y'], track[10]['theta'], 2.0])
+
+    original = fsm.mpc.compute_control
+    monkeypatch.setattr(fsm.mpc, 'compute_control',
+                        lambda *a, **kw: (original(*a, **kw)[0], 0.010, 0))
+    fsm.step(x_curr, track, 10)
+    assert fsm.state != KAYNState.FALLBACK, \
+        f"curve_ctrl=lqr should not enter FALLBACK, got {fsm.state.name}"
+
+
+def test_invalid_controller_slot_raises():
+    """Passing an unknown controller name must raise ValueError at construction."""
+    model = BicycleModel()
+    import pytest
+    with pytest.raises(ValueError):
+        FSM(
+            lqr=LQRController(model),
+            mpc=MPCController(model),
+            stanley=StanleyController(model=model),
+            curvature_estimator=CurvatureEstimator(lookahead=10),
+            curve_ctrl='pure_pursuit',
+        )
+
+
 def test_fallback_on_mpc_timeout(monkeypatch):
     """Monkeypatched slow MPC must trigger CURVE → FALLBACK immediately."""
     fsm = _make_fsm()
