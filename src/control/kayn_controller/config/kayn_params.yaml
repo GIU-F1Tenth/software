@@ -1,0 +1,61 @@
+kayn_controller_node:
+  ros__parameters:
+
+    # --- Vehicle ---
+    wheelbase: 0.33        # [m]
+    dt: 0.02               # [s] must match control_hz
+
+    # --- LQR weights: Q=diag([px,py,theta,v]), R=diag([delta,a]) ---
+    lqr.q_px:    5.0
+    lqr.q_py:    5.0
+    lqr.q_theta: 6.0
+    lqr.q_v:     1.0
+    lqr.r_delta: 4.0
+    lqr.r_a:     0.3
+
+    # --- MPC ---
+    mpc.horizon_n: 20
+    mpc.q_px:    5.0
+    mpc.q_py:    5.0
+    mpc.q_theta: 6.0
+    mpc.q_v:     1.0
+    mpc.r_delta: 4.0
+    mpc.r_a:     0.3
+    mpc.timeout_ms: 5.0    # solver budget [ms]
+
+    # --- Stanley ---
+    stanley.k: 1.5          # cross-track gain
+
+    # --- FSM controller slots ---
+    # Each FSM state runs an independently chosen controller.
+    # Valid values: "stanley" | "lqr" | "mpc"
+    fsm.warmup_controller:   "stanley"
+    fsm.straight_controller: "lqr"
+    fsm.curve_controller:    "mpc"
+    fsm.fallback_controller: "stanley"
+
+    # --- FSM / curvature ---
+    fsm.enter_threshold: 0.10   # kappa to enter CURVE [rad/m]
+    fsm.exit_threshold:  0.06   # kappa to leave CURVE [rad/m]
+    fsm.warmup_steps:    50     # Stanley steps before handing to LQR (1s at 50Hz)
+    fsm.confirm_steps:   3      # consecutive samples before transition
+    fsm.blend_window:    5      # waypoints for blend interpolation
+    fsm.lookahead:       10     # curvature estimator lookahead points
+
+    # --- Speed / limits ---
+    max_speed:    8.0     # [m/s]
+    max_steering: 0.4189  # [rad]
+    max_accel:    5.0     # [m/s²]
+
+    # --- Control loop ---
+    control_hz: 50.0
+
+    # --- Topics ---
+    odom_topic:       "/odom"
+    trajectory_topic: "/horizon_mapper/reference_trajectory"
+    path_ready_topic: "/horizon_mapper/path_ready"
+    drive_topic:      "/kayn/drive"
+
+    # --- Logging ---
+    debug: false
+    log_every_n: 25
