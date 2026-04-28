@@ -61,3 +61,6 @@
 [submodule "src/planning/trajectory_planning"]
 	path = src/planning/trajectory_planning
 	url = https://github.com/GIU-F1Tenth/trajectory_planning.git
+[submodule "src/control/kayn-controller"]
+	path = src/control/kayn-controller
+	url = https://github.com/GIU-F1Tenth/kayn-controller
