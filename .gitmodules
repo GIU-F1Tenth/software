@@ -61,3 +61,6 @@
 [submodule "src/planning/trajectory_planning"]
 	path = src/planning/trajectory_planning
 	url = https://github.com/GIU-F1Tenth/trajectory_planning.git
+[submodule "src/drivers/imu_driver"]
+	path = src/drivers/imu_driver
+	url = https://github.com/GIU-F1Tenth/imu_driver.git
