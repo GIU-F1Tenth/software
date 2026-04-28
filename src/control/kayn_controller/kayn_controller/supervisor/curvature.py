@@ -16,6 +16,9 @@ Hysteresis thresholds (from kayn_params.yaml):
 import numpy as np
 from typing import List, Dict
 
+ENTER_THRESHOLD = 0.10   # rad/m — enter MPC mode (R < 10m)
+EXIT_THRESHOLD  = 0.06   # rad/m — leave MPC mode (R > ~16.7m)
+
 
 def _menger(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray) -> float:
     """Menger curvature of the circle through three 2D points."""
