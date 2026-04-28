@@ -2,9 +2,10 @@
 KAYN FSM Supervisor
 ===================
 
-5 states: STRAIGHT, BLEND_OUT, CURVE, BLEND_IN, FALLBACK
+6 states: WARMUP, STRAIGHT, BLEND_OUT, CURVE, BLEND_IN, FALLBACK
 
 Transition table:
+  WARMUP    → STRAIGHT  : WARMUP_STEPS elapsed (default 50 = 1s at 50Hz)
   STRAIGHT  → BLEND_OUT : kappa > 0.10 for CONFIRM_STEPS consecutive samples
   BLEND_OUT → CURVE     : BLEND_WINDOW steps complete
   CURVE     → BLEND_IN  : kappa < 0.06 for CONFIRM_STEPS consecutive samples
@@ -27,9 +28,11 @@ from .state_handoff import handoff
 BLEND_WINDOW  = 5       # steps for output blending at transitions
 CONFIRM_STEPS = 3       # consecutive samples needed to confirm a transition
 MPC_TIMEOUT_S = 0.005   # 5ms solver budget
+WARMUP_STEPS  = 50      # Stanley warm-up steps before handing to LQR (1s at 50Hz)
 
 
 class KAYNState(Enum):
+    WARMUP    = auto()   # initial Stanley warm-up, pre-heats LQR gain
     STRAIGHT  = auto()
     BLEND_OUT = auto()   # LQR → MPC transition
     CURVE     = auto()
@@ -38,13 +41,16 @@ class KAYNState(Enum):
 
 
 class FSM:
-    def __init__(self, lqr, mpc, stanley, curvature_estimator: CurvatureEstimator):
+    def __init__(self, lqr, mpc, stanley, curvature_estimator: CurvatureEstimator,
+                 warmup_steps: int = WARMUP_STEPS):
         self.lqr     = lqr
         self.mpc     = mpc
         self.stanley = stanley
         self.curv_est = curvature_estimator
+        self._warmup_steps = warmup_steps
 
-        self.state = KAYNState.STRAIGHT
+        self.state = KAYNState.WARMUP
+        self._warmup_count   = 0
         self._confirm_count  = 0
         self._blend_step     = 0
         self._recovery_count = 0
@@ -59,7 +65,9 @@ class FSM:
         """
         kappa = self.curv_est.estimate(trajectory, ref_idx)
 
-        if self.state == KAYNState.STRAIGHT:
+        if self.state == KAYNState.WARMUP:
+            return self._step_warmup(x_curr, trajectory, ref_idx)
+        elif self.state == KAYNState.STRAIGHT:
             return self._step_straight(x_curr, trajectory, ref_idx, kappa)
         elif self.state == KAYNState.BLEND_OUT:
             return self._step_blend_out(x_curr, trajectory, ref_idx)
@@ -78,6 +86,20 @@ class FSM:
     # ------------------------------------------------------------------
     # Per-state handlers
     # ------------------------------------------------------------------
+
+    def _step_warmup(self, x_curr, trajectory, ref_idx) -> np.ndarray:
+        u = np.array([self.stanley.compute_control(x_curr, trajectory), 0.0])
+        # Pre-heat LQR gain in background so STRAIGHT is ready the instant we arrive
+        try:
+            self.lqr.compute_control(x_curr, self._ref_state(trajectory, ref_idx))
+        except Exception:
+            pass
+        self._warmup_count += 1
+        if self._warmup_count >= self._warmup_steps:
+            self._transition(KAYNState.STRAIGHT,
+                             f"warmup_complete steps={self._warmup_count}",
+                             x_curr, trajectory, ref_idx)
+        return u
 
     def _step_straight(self, x_curr, trajectory, ref_idx, kappa) -> np.ndarray:
         u = self.lqr.compute_control(x_curr, self._ref_state(trajectory, ref_idx))

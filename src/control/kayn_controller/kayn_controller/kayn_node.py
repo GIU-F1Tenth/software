@@ -69,6 +69,7 @@ class KAYNNode(Node):
         p('mpc.q_theta', 6.0);       p('mpc.q_v', 1.0)
         p('mpc.r_delta', 4.0);       p('mpc.r_a', 0.3)
         p('stanley.k', 1.5)
+        p('fsm.warmup_steps', 50)
         p('fsm.enter_threshold', 0.10); p('fsm.exit_threshold', 0.06)
         p('fsm.confirm_steps', 3);   p('fsm.blend_window', 5)
         p('fsm.lookahead', 10)
@@ -94,7 +95,8 @@ class KAYNNode(Node):
         self.lqr_R = np.diag([g('lqr.r_delta'), g('lqr.r_a')])
         self.mpc_Q = np.diag([g('mpc.q_px'), g('mpc.q_py'), g('mpc.q_theta'), g('mpc.q_v')])
         self.mpc_R = np.diag([g('mpc.r_delta'), g('mpc.r_a')])
-        self.stanley_k    = g('stanley.k')
+        self.stanley_k      = g('stanley.k')
+        self.warmup_steps   = g('fsm.warmup_steps')
         self.curv_lookahead = g('fsm.lookahead')
 
     def _build_controllers(self):
@@ -104,6 +106,7 @@ class KAYNNode(Node):
             mpc=MPCController(model, N=self.mpc_n, Q=self.mpc_Q, R=self.mpc_R),
             stanley=StanleyController(k=self.stanley_k, model=model),
             curvature_estimator=CurvatureEstimator(lookahead=self.curv_lookahead),
+            warmup_steps=self.warmup_steps,
         )
 
     def _init_state(self):

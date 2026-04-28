@@ -6,7 +6,7 @@ from kayn_controller.controllers.lqr import LQRController
 from kayn_controller.controllers.mpc import MPCController
 from kayn_controller.controllers.stanley import StanleyController
 from kayn_controller.supervisor.curvature import CurvatureEstimator
-from kayn_controller.supervisor.fsm import FSM, KAYNState, CONFIRM_STEPS, BLEND_WINDOW
+from kayn_controller.supervisor.fsm import FSM, KAYNState, CONFIRM_STEPS, BLEND_WINDOW, WARMUP_STEPS
 from simulation.track import straight_track, curve_track
 
 
@@ -20,14 +20,25 @@ def _make_fsm():
     )
 
 
-def test_initial_state_is_straight():
+def test_initial_state_is_warmup():
     fsm = _make_fsm()
-    assert fsm.state == KAYNState.STRAIGHT
+    assert fsm.state == KAYNState.WARMUP
+
+
+def test_warmup_transitions_to_straight():
+    """After warmup_steps Stanley steps, FSM must enter STRAIGHT."""
+    fsm = _make_fsm()
+    track = straight_track(length=200.0, v_ref=2.0, n_points=300)
+    x_curr = np.array([track[5]['x'], track[5]['y'], track[5]['theta'], 2.0])
+    for _ in range(WARMUP_STEPS):
+        fsm.step(x_curr, track, 5)
+    assert fsm.state == KAYNState.STRAIGHT, f"Expected STRAIGHT, got {fsm.state.name}"
 
 
 def test_straight_to_blend_out_on_high_curvature():
     """3 consecutive high-kappa samples must trigger STRAIGHT → BLEND_OUT."""
     fsm = _make_fsm()
+    fsm.state = KAYNState.STRAIGHT   # skip warmup
     track = curve_track(radius=3.0, sweep_deg=180.0, v_ref=2.0, n_points=300)
     x_curr = np.array([track[10]['x'], track[10]['y'], track[10]['theta'], 2.0])
 
@@ -41,6 +52,7 @@ def test_straight_to_blend_out_on_high_curvature():
 def test_blend_out_completes_to_curve():
     """After BLEND_WINDOW blend steps, state must be CURVE."""
     fsm = _make_fsm()
+    fsm.state = KAYNState.STRAIGHT   # skip warmup
     track = curve_track(radius=3.0, sweep_deg=180.0, v_ref=2.0, n_points=300)
     x_curr = np.array([track[10]['x'], track[10]['y'], track[10]['theta'], 2.0])
 
@@ -57,6 +69,7 @@ def test_blend_out_completes_to_curve():
 def test_no_steering_jump_at_transition():
     """Steering output must not jump more than 0.05 rad at any transition."""
     fsm = _make_fsm()
+    fsm.state = KAYNState.STRAIGHT   # skip warmup
     model = BicycleModel()
     track = curve_track(radius=3.0, sweep_deg=180.0, v_ref=2.0, n_points=300)
     x_curr = np.array([track[5]['x'], track[5]['y'], track[5]['theta'], 2.0])
