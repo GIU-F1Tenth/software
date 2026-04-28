@@ -6,17 +6,20 @@ from kayn_controller.controllers.lqr import LQRController
 from kayn_controller.controllers.mpc import MPCController
 from kayn_controller.controllers.stanley import StanleyController
 from kayn_controller.supervisor.curvature import CurvatureEstimator
-from kayn_controller.supervisor.fsm import FSM, KAYNState, CONFIRM_STEPS, BLEND_WINDOW, WARMUP_STEPS
+from kayn_controller.supervisor.fsm import (
+    FSM, FSMMode, KAYNState, CONFIRM_STEPS, BLEND_WINDOW, WARMUP_STEPS,
+)
 from simulation.track import straight_track, curve_track
 
 
-def _make_fsm():
+def _make_fsm(mode: str = 'full'):
     model = BicycleModel()
     return FSM(
         lqr=LQRController(model),
         mpc=MPCController(model),
         stanley=StanleyController(model=model),
         curvature_estimator=CurvatureEstimator(lookahead=10),
+        mode=mode,
     )
 
 
@@ -103,3 +106,53 @@ def test_fallback_on_mpc_timeout(monkeypatch):
     monkeypatch.setattr(fsm.mpc, 'compute_control', slow_mpc)
     fsm.step(x_curr, track, 10)
     assert fsm.state == KAYNState.FALLBACK, f"Expected FALLBACK, got {fsm.state.name}"
+
+
+# ------------------------------------------------------------------
+# Mode-selection tests
+# ------------------------------------------------------------------
+
+def test_pure_stanley_never_leaves_warmup():
+    """pure_stanley mode must stay in WARMUP regardless of step count."""
+    fsm = _make_fsm(mode='pure_stanley')
+    track = curve_track(radius=3.0, sweep_deg=180.0, v_ref=2.0, n_points=300)
+    x_curr = np.array([track[5]['x'], track[5]['y'], track[5]['theta'], 2.0])
+    for _ in range(WARMUP_STEPS * 3):
+        fsm.step(x_curr, track, 5)
+    assert fsm.state == KAYNState.WARMUP
+    assert fsm.state_name == 'STANLEY'
+
+
+def test_pure_lqr_starts_in_straight():
+    """pure_lqr mode must start in STRAIGHT (no warmup)."""
+    fsm = _make_fsm(mode='pure_lqr')
+    assert fsm.state == KAYNState.STRAIGHT
+
+
+def test_pure_lqr_never_enters_mpc(monkeypatch):
+    """pure_lqr mode must never enter BLEND_OUT or CURVE even on sharp curves."""
+    fsm = _make_fsm(mode='pure_lqr')
+    track = curve_track(radius=3.0, sweep_deg=180.0, v_ref=2.0, n_points=300)
+    x_curr = np.array([track[10]['x'], track[10]['y'], track[10]['theta'], 2.0])
+    for _ in range(CONFIRM_STEPS + 5):
+        fsm.step(x_curr, track, 10)
+    assert fsm.state == KAYNState.STRAIGHT, \
+        f"pure_lqr should stay STRAIGHT, got {fsm.state.name}"
+
+
+def test_lqr_mpc_starts_in_straight():
+    """lqr_mpc mode must start in STRAIGHT (no warmup)."""
+    fsm = _make_fsm(mode='lqr_mpc')
+    assert fsm.state == KAYNState.STRAIGHT
+
+
+def test_stanley_lqr_no_mpc_on_curve():
+    """stanley_lqr mode must not enter BLEND_OUT even on a sharp curve."""
+    fsm = _make_fsm(mode='stanley_lqr')
+    fsm.state = KAYNState.STRAIGHT   # skip warmup
+    track = curve_track(radius=3.0, sweep_deg=180.0, v_ref=2.0, n_points=300)
+    x_curr = np.array([track[10]['x'], track[10]['y'], track[10]['theta'], 2.0])
+    for _ in range(CONFIRM_STEPS + 5):
+        fsm.step(x_curr, track, 10)
+    assert fsm.state == KAYNState.STRAIGHT, \
+        f"stanley_lqr should stay STRAIGHT, got {fsm.state.name}"
