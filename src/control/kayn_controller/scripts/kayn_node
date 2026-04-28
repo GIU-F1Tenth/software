@@ -1,0 +1,3 @@
+#!/usr/bin/env python3
+from kayn_controller.kayn_node import main
+main()
