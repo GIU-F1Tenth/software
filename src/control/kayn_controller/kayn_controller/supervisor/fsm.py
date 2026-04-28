@@ -2,29 +2,23 @@
 KAYN FSM Supervisor
 ===================
 
-Controller modes (fsm.mode param):
-  pure_stanley — Stanley everywhere; no LQR, no MPC
-  pure_lqr     — LQR everywhere; no warmup, no MPC
-  stanley_lqr  — Stanley warmup → LQR; no MPC
-  lqr_mpc      — LQR on straights → MPC on curves; no warmup
-  full         — complete hierarchy (default)
+6 states: WARMUP, STRAIGHT, BLEND_OUT, CURVE, BLEND_IN, FALLBACK
 
-State transition table (transitions are gated by mode — see _step_* methods):
-  WARMUP    → STRAIGHT  : WARMUP_STEPS elapsed (modes: full, stanley_lqr)
-                          never exits in pure_stanley
-  STRAIGHT  → BLEND_OUT : kappa > 0.10 for CONFIRM_STEPS (modes: full, lqr_mpc)
+Transition table:
+  WARMUP    → STRAIGHT  : WARMUP_STEPS elapsed (default 50 = 1s at 50Hz)
+  STRAIGHT  → BLEND_OUT : kappa > 0.10 for CONFIRM_STEPS consecutive samples
   BLEND_OUT → CURVE     : BLEND_WINDOW steps complete
-  CURVE     → BLEND_IN  : kappa < 0.06 for CONFIRM_STEPS
+  CURVE     → BLEND_IN  : kappa < 0.06 for CONFIRM_STEPS consecutive samples
   CURVE     → FALLBACK  : MPC solve_time > 5ms OR solver status != 0
   BLEND_IN  → STRAIGHT  : BLEND_WINDOW steps complete
-  FALLBACK  → CURVE     : CONFIRM_STEPS healthy solves AND kappa > 0.10
-                          (modes: full, lqr_mpc only — else → STRAIGHT)
-  FALLBACK  → STRAIGHT  : CONFIRM_STEPS healthy solves AND kappa <= 0.10
+  FALLBACK  → CURVE     : CONFIRM_STEPS consecutive healthy solves AND kappa > 0.10
+  FALLBACK  → STRAIGHT  : CONFIRM_STEPS consecutive healthy solves AND kappa <= 0.10
 
 Blend zones: linear interpolation over BLEND_WINDOW steps, preventing steering jumps.
 """
 
 import numpy as np
+import time
 from enum import Enum, auto
 from typing import List, Dict
 
@@ -37,16 +31,8 @@ MPC_TIMEOUT_S = 0.005   # 5ms solver budget
 WARMUP_STEPS  = 50      # Stanley warm-up steps before handing to LQR (1s at 50Hz)
 
 
-class FSMMode(Enum):
-    PURE_STANLEY = 'pure_stanley'   # Stanley only
-    PURE_LQR     = 'pure_lqr'      # LQR only
-    STANLEY_LQR  = 'stanley_lqr'   # Stanley warmup → LQR
-    LQR_MPC      = 'lqr_mpc'       # LQR straight → MPC curve (no warmup)
-    FULL         = 'full'           # full hierarchy (default)
-
-
 class KAYNState(Enum):
-    WARMUP    = auto()   # Stanley warmup, pre-heats LQR gain; also the running state for pure_stanley
+    WARMUP    = auto()   # initial Stanley warm-up, pre-heats LQR gain
     STRAIGHT  = auto()
     BLEND_OUT = auto()   # LQR → MPC transition
     CURVE     = auto()
@@ -54,24 +40,16 @@ class KAYNState(Enum):
     FALLBACK  = auto()
 
 
-# Modes that use the Stanley warmup phase before LQR
-_WARMUP_MODES = {FSMMode.PURE_STANLEY, FSMMode.STANLEY_LQR, FSMMode.FULL}
-# Modes that allow MPC states
-_MPC_MODES    = {FSMMode.LQR_MPC, FSMMode.FULL}
-
-
 class FSM:
     def __init__(self, lqr, mpc, stanley, curvature_estimator: CurvatureEstimator,
-                 warmup_steps: int = WARMUP_STEPS, mode: str = 'full'):
-        self.lqr      = lqr
-        self.mpc      = mpc
-        self.stanley  = stanley
+                 warmup_steps: int = WARMUP_STEPS):
+        self.lqr     = lqr
+        self.mpc     = mpc
+        self.stanley = stanley
         self.curv_est = curvature_estimator
         self._warmup_steps = warmup_steps
-        self.mode = FSMMode(mode)
 
-        # Start in STRAIGHT for modes that skip warmup
-        self.state = KAYNState.WARMUP if self.mode in _WARMUP_MODES else KAYNState.STRAIGHT
+        self.state = KAYNState.WARMUP
         self._warmup_count   = 0
         self._confirm_count  = 0
         self._blend_step     = 0
@@ -79,7 +57,12 @@ class FSM:
 
     def step(self, x_curr: np.ndarray, trajectory: List[Dict],
              ref_idx: int) -> np.ndarray:
-        """One FSM control step. Returns u = [delta, a]."""
+        """
+        One FSM control step.
+
+        Returns:
+            u: [delta, a]
+        """
         kappa = self.curv_est.estimate(trajectory, ref_idx)
 
         if self.state == KAYNState.WARMUP:
@@ -98,9 +81,6 @@ class FSM:
 
     @property
     def state_name(self) -> str:
-        # pure_stanley stays in WARMUP forever — label it honestly
-        if self.mode == FSMMode.PURE_STANLEY and self.state == KAYNState.WARMUP:
-            return 'STANLEY'
         return self.state.name
 
     # ------------------------------------------------------------------
@@ -109,16 +89,11 @@ class FSM:
 
     def _step_warmup(self, x_curr, trajectory, ref_idx) -> np.ndarray:
         u = np.array([self.stanley.compute_control(x_curr, trajectory), 0.0])
-
-        if self.mode == FSMMode.PURE_STANLEY:
-            return u   # run Stanley indefinitely — never transition out
-
-        # Pre-heat LQR DARE cache so STRAIGHT is ready immediately
+        # Pre-heat LQR gain in background so STRAIGHT is ready the instant we arrive
         try:
             self.lqr.compute_control(x_curr, self._ref_state(trajectory, ref_idx))
         except Exception:
             pass
-
         self._warmup_count += 1
         if self._warmup_count >= self._warmup_steps:
             self._transition(KAYNState.STRAIGHT,
@@ -129,7 +104,7 @@ class FSM:
     def _step_straight(self, x_curr, trajectory, ref_idx, kappa) -> np.ndarray:
         u = self.lqr.compute_control(x_curr, self._ref_state(trajectory, ref_idx))
 
-        if self.mode in _MPC_MODES and kappa > ENTER_THRESHOLD:
+        if kappa > ENTER_THRESHOLD:
             self._confirm_count += 1
             if self._confirm_count >= CONFIRM_STEPS:
                 self._transition(KAYNState.BLEND_OUT,
@@ -200,9 +175,7 @@ class FSM:
             self._recovery_count = 0
 
         if self._recovery_count >= CONFIRM_STEPS:
-            # Only return to CURVE if MPC is enabled in this mode
-            mpc_ok = self.mode in _MPC_MODES and kappa > ENTER_THRESHOLD
-            target = KAYNState.CURVE if mpc_ok else KAYNState.STRAIGHT
+            target = KAYNState.CURVE if kappa > ENTER_THRESHOLD else KAYNState.STRAIGHT
             self._transition(target, f"solver_recovered kappa={kappa:.3f}",
                              x_curr, trajectory, ref_idx)
         return u

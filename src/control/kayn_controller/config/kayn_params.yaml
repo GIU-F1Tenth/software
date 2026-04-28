@@ -27,13 +27,6 @@ kayn_controller_node:
     stanley.k: 1.5          # cross-track gain
 
     # --- FSM / curvature ---
-    # Controller mode — selects which controllers are active:
-    #   pure_stanley : Stanley only (no LQR, no MPC)
-    #   pure_lqr     : LQR only    (no warmup, no MPC)
-    #   stanley_lqr  : Stanley warmup → LQR  (no MPC)
-    #   lqr_mpc      : LQR straight → MPC curves  (no warmup)
-    #   full         : complete hierarchy (warmup → LQR → MPC)
-    fsm.mode:            "full"
     fsm.enter_threshold: 0.10   # kappa to enter CURVE [rad/m]
     fsm.exit_threshold:  0.06   # kappa to leave CURVE [rad/m]
     fsm.warmup_steps:    50     # Stanley steps before handing to LQR (1s at 50Hz)
