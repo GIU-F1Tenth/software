@@ -257,6 +257,14 @@ Copy the commands that were generated to transfer the map locally.
    python3 main_globaltraj_f110.py --map_name track_name --map_path ~/maps/track.csv --export_path /tmp/optimal_raceline.csv
    ```
 
+### Acceleration and Max driving force 
+
+This repository includes a script for finding the maximum acceleration and driving force. To find them, you should drive the car at maximum acceleration for some time in an open space. Then use, 
+
+```bash
+python3 scripts/odom_acceleration.py ros2_bag_name --mass mass_in_kg --dragcoeff drag_coeff
+```
+
 ### Camera Configuration
 
 For object detection and perception:
