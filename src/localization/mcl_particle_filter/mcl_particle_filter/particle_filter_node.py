@@ -140,7 +140,7 @@ class ParticleFiler(Node):
         oMap = range_libc.PyOMap(map_msg)
         self.MAX_RANGE_PX = int(self.MAX_RANGE_METERS / self.map_info.resolution)
 
-        self.get_logger.info(f"Initializing range method: {self.WHICH_RM}")
+        self.get_logger().info(f"Initializing range method: {self.WHICH_RM}")
         if self.WHICH_RM == "bl":
             self.range_method = range_libc.PyBresenhamsLine(oMap, self.MAX_RANGE_PX)
         elif "cddt" in self.WHICH_RM:
@@ -168,7 +168,7 @@ class ParticleFiler(Node):
         t = TransformStamped()
         t.header.stamp = stamp
         t.header.frame_id = 'map'
-        t.child_frame_id = 'laser'
+        t.child_frame_id = 'odom'
         t.transform.translation.x = pose[0]
         t.transform.translation.y = pose[1]
         t.transform.translation.z = 0.0
@@ -415,7 +415,7 @@ class ParticleFiler(Node):
                 weight = np.power(weight, self.INV_SQUASH_FACTOR)
                 weights[i] = weight
         else:
-            self.get_logger.warn("PLEASE SET rangelib_variant PARAM to 0-4")
+            self.get_logger().warn("PLEASE SET rangelib_variant PARAM to 0-4")
 
     def MCL(self, a, o):
         if self.SHOW_FINE_TIMING:

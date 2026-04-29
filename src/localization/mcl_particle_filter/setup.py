@@ -24,6 +24,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            "mcl_particle_filter_node = mcl_particle_filter.particle_filter_node:main"
         ],
     },
 )
