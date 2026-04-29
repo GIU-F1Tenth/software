@@ -146,6 +146,8 @@ class FSMNode(Node):
             return "lqr"
         if StateTraits.DWA in current_state_traits:
             return "dwa"
+        if StateTraits.KAYN in current_state_traits: 
+            return "kayn"
         return NotImplemented
         
         

@@ -10,6 +10,8 @@ class StateTraits(IntFlag):
     GAP_FOLLOWING = auto()
     DWA = auto()
     LQR = auto()
+    KAYN = auto()
+    
     TRAILING = auto()
     STOP = auto()
 
