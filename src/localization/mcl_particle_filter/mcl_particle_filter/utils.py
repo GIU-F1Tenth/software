@@ -81,10 +81,8 @@ def particles_to_poses(particles):
     '''
     return map(particle_to_pose, particles)
 
-def make_header(frame_id, stamp=None):
+def make_header(frame_id, stamp):
     ''' Creates a Header object for stamped ROS objects '''
-    if stamp == None:
-        stamp = rclpy.time.Time()
     header = Header()
     header.stamp = stamp
     header.frame_id = frame_id
