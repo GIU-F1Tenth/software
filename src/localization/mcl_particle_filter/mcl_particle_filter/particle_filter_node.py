@@ -418,26 +418,13 @@ class ParticleFiler(Node):
             self.get_logger().warn("PLEASE SET rangelib_variant PARAM to 0-4")
 
     def MCL(self, a, o):
-        if self.SHOW_FINE_TIMING:
-            t = time.time()
         proposal_indices = np.random.choice(self.particle_indices, self.MAX_PARTICLES, p=self.weights)
         proposal_distribution = self.particles[proposal_indices, :]
-        if self.SHOW_FINE_TIMING:
-            t_propose = time.time()
-
+    
         self.motion_model(proposal_distribution, a)
-        if self.SHOW_FINE_TIMING:
-            t_motion = time.time()
-
         self.sensor_model(proposal_distribution, o, self.weights)
-        if self.SHOW_FINE_TIMING:
-            t_sensor = time.time()
-
+    
         self.weights /= np.sum(self.weights)
-        if self.SHOW_FINE_TIMING:
-            t_norm = time.time()
-            t_total = (t_norm - t) / 100.0
-
         self.particles = proposal_distribution
 
     def expected_pose(self):
@@ -474,7 +461,7 @@ def main():
     try:
         pf = ParticleFiler()
         rclpy.spin(pf)
-    except:
+    except KeyboardInterrupt:
         pf.destroy_node()
         rclpy.shutdown()
 
