@@ -100,6 +100,7 @@ sudo apt install -y \
     ros-humble-asio-cmake-module \
     ros-humble-serial-driver \
     ros-humble-tf-transformations \
+    ros-humble-robot-localization \
     python3-pip
 ```
 
