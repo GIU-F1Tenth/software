@@ -62,6 +62,11 @@ class ControlGateway(Node):
             self.drive_topic,
             10,
         )
+        self.hard_break_pub = self.create_publisher(
+            Float64,
+            "/commands/motor/brake",
+            10
+        )
 
         self.joy_sub = self.create_subscription(
             Joy,
@@ -94,6 +99,7 @@ class ControlGateway(Node):
             self.speed_cap_callback,
             10
         )
+        
 
         self.get_logger().info("control_gateway started")
         self.get_logger().info(f"  joy_topic: {self.joy_topic}")
@@ -211,7 +217,11 @@ class ControlGateway(Node):
         zero_command.drive.acceleration = 0.0
         zero_command.drive.steering_angle = 0.0
         zero_command.drive.steering_angle_velocity = 0.0
-        self.drive_pub.publish(zero_command)
+        # self.drive_pub.publish(zero_command)
+        
+        hard_break = Float64()
+        hard_break.data = 100.0
+        self.hard_break_pub.publish(hard_break)
 
 
 def main(args=None) -> None:
