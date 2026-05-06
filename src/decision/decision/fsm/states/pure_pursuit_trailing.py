@@ -20,7 +20,7 @@ class PurePursuitTrailingState(State):
         return self._state_type
 
     def transition(self, objects: Optional[Collection[Any]] = None) -> StateTraits:
-        safe_to_overtake = True  # TODO: implement safety assessment logic
+        safe_to_overtake = False  # TODO: implement safety assessment logic
 
         if objects is not None and len(objects) > 0:
             if safe_to_overtake:
@@ -28,4 +28,4 @@ class PurePursuitTrailingState(State):
             else:
                 return self._state_type.state_traits
         else:
-            return StateTraits.PURE_PURSUIT
+            return self._state_type.state_traits
