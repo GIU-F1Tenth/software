@@ -19,7 +19,7 @@ setup(
     zip_safe=True,
     maintainer="Fam Shihata",
     maintainer_email="fam@awadlouis.com",
-    description="TODO: Package description",
+    description="ROS2 state publisher for fusing EKF odometry with map transforms",
     license="MIT",
     extras_require={
         "test": [
@@ -27,6 +27,8 @@ setup(
         ],
     },
     entry_points={
-        "console_scripts": [],
+        "console_scripts": [
+            "state_publisher=state_publisher.state_publisher_node:main",
+        ],
     },
 )
