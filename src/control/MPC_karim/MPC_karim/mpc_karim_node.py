@@ -15,6 +15,7 @@ Output:
 import csv
 import math
 import os
+import time
 from typing import List, Optional, Tuple
 
 import numpy as np
@@ -48,6 +49,20 @@ def euler_from_quaternion(quaternion):
     return roll, pitch, yaw
 
 
+def smooth_angles(theta: np.ndarray, window: int) -> np.ndarray:
+    """Moving-average smoothing on a closed-loop angle sequence (handles wrap)."""
+    if window <= 1 or theta.shape[0] < window:
+        return theta
+    sin_s = np.sin(theta)
+    cos_s = np.cos(theta)
+    kernel = np.ones(window) / window
+    sin_f = np.convolve(np.r_[sin_s[-window:], sin_s, sin_s[:window]], kernel, mode='same')
+    cos_f = np.convolve(np.r_[cos_s[-window:], cos_s, cos_s[:window]], kernel, mode='same')
+    sin_f = sin_f[window:-window]
+    cos_f = cos_f[window:-window]
+    return np.arctan2(sin_f, cos_f)
+
+
 class MPCKarimNode(Node):
     def __init__(self) -> None:
         super().__init__('MPC_karim')
@@ -72,7 +87,9 @@ class MPCKarimNode(Node):
         self.declare_parameter('q_v', 1.0)
         self.declare_parameter('q_theta', 2.0)
         self.declare_parameter('r_a', 0.05)
-        self.declare_parameter('r_delta', 0.5)
+        self.declare_parameter('r_delta', 2.0)
+        self.declare_parameter('r_da', 0.5)
+        self.declare_parameter('r_ddelta', 20.0)
 
         # Limits
         self.declare_parameter('a_min', -3.0)
@@ -82,6 +99,11 @@ class MPCKarimNode(Node):
         self.declare_parameter('v_min', 0.0)
         self.declare_parameter('v_max', 5.0)
         self.declare_parameter('speed_factor', 1.0)
+
+        # Reference + smoothing + rate limit
+        self.declare_parameter('min_lookahead_speed', 1.0)
+        self.declare_parameter('theta_smooth_window', 5)
+        self.declare_parameter('steer_rate_limit', 4.0)  # rad/s on published cmd
 
         # Resolve params
         self.odom_topic = self.get_parameter('odom_topic').value
@@ -94,10 +116,14 @@ class MPCKarimNode(Node):
         self.control_frequency = float(self.get_parameter('control_frequency').value)
         self.speed_factor = float(self.get_parameter('speed_factor').value)
         self.v_max = float(self.get_parameter('v_max').value)
+        self.min_lookahead_speed = float(self.get_parameter('min_lookahead_speed').value)
+        self.theta_smooth_window = int(self.get_parameter('theta_smooth_window').value)
+        self.steer_rate_limit = float(self.get_parameter('steer_rate_limit').value)
 
         self.path_xy: np.ndarray = np.zeros((0, 2))
         self.path_v: np.ndarray = np.zeros((0,))
         self.path_theta: np.ndarray = np.zeros((0,))
+        self.path_s: np.ndarray = np.zeros((0,))  # cumulative arc length
         self._load_path()
         if self.path_xy.shape[0] < 2:
             self.get_logger().error('Path is empty or too short; MPC cannot run.')
@@ -113,6 +139,8 @@ class MPCKarimNode(Node):
             q_theta=float(self.get_parameter('q_theta').value),
             r_a=float(self.get_parameter('r_a').value),
             r_delta=float(self.get_parameter('r_delta').value),
+            r_da=float(self.get_parameter('r_da').value),
+            r_ddelta=float(self.get_parameter('r_ddelta').value),
             a_min=float(self.get_parameter('a_min').value),
             a_max=float(self.get_parameter('a_max').value),
             delta_min=float(self.get_parameter('delta_min').value),
@@ -120,10 +148,15 @@ class MPCKarimNode(Node):
             v_min=float(self.get_parameter('v_min').value),
             v_max=self.v_max,
         )
+        self.delta_min = float(self.get_parameter('delta_min').value)
+        self.delta_max = float(self.get_parameter('delta_max').value)
 
         # State
         self.last_state: Optional[np.ndarray] = None
         self.is_active = False
+        self.last_steer_cmd: float = 0.0
+        self._solve_ms_ema: float = 0.0
+        self._solve_log_counter: int = 0
 
         # Pub/sub
         self.drive_pub = self.create_publisher(
@@ -191,13 +224,20 @@ class MPCKarimNode(Node):
         dy = np.diff(xy[:, 1])
         theta = np.arctan2(dy, dx)
         theta = np.append(theta, theta[-1])
+        theta = smooth_angles(theta, self.theta_smooth_window)
+
+        # Cumulative arc length along the path (used for distance-based lookahead).
+        seg = np.hypot(dx, dy)
+        s = np.concatenate([[0.0], np.cumsum(seg)])
 
         self.path_xy = xy
         self.path_v = v
         self.path_theta = theta
+        self.path_s = s
         self.get_logger().info(
             f'Loaded {xy.shape[0]} waypoints from {csv_file} '
-            f'(inverse={inverse}, speed_factor={self.speed_factor}).'
+            f'(inverse={inverse}, speed_factor={self.speed_factor}, '
+            f'total_length={s[-1]:.2f}m).'
         )
 
     # ----------------------------------------------------------- ROS callbacks
@@ -216,6 +256,7 @@ class MPCKarimNode(Node):
             self.get_logger().info('MPC_karim: activated by /control_selector.')
         elif (not self.is_active) and was_active:
             self.get_logger().info('MPC_karim: paused by /control_selector.')
+            self.last_steer_cmd = 0.0
 
     # ------------------------------------------------------------ control loop
     def _control_step(self) -> None:
@@ -223,7 +264,18 @@ class MPCKarimNode(Node):
             return
 
         x_ref = self._build_reference(self.last_state)
+        t0 = time.perf_counter()
         result = self.mpc.solve(self.last_state, x_ref)
+        solve_ms = (time.perf_counter() - t0) * 1000.0
+        self._solve_ms_ema = 0.9 * self._solve_ms_ema + 0.1 * solve_ms
+        self._solve_log_counter += 1
+        if self._solve_log_counter >= int(self.control_frequency * 2):
+            self._solve_log_counter = 0
+            budget_ms = 1000.0 / self.control_frequency
+            self.get_logger().info(
+                f'MPC solve {self._solve_ms_ema:.1f} ms (budget {budget_ms:.1f} ms)'
+            )
+
         if result is None:
             self.get_logger().warn('MPC solve failed — sending zero command.')
             self._publish(0.0, 0.0)
@@ -232,6 +284,17 @@ class MPCKarimNode(Node):
         a_cmd, delta_cmd = result
         v_now = self.last_state[2]
         speed_cmd = float(np.clip(v_now + a_cmd * self.dt, 0.0, self.v_max))
+
+        # Rate-limit steering on the published command.
+        max_step = self.steer_rate_limit / self.control_frequency
+        delta_cmd = float(np.clip(
+            delta_cmd,
+            self.last_steer_cmd - max_step,
+            self.last_steer_cmd + max_step,
+        ))
+        delta_cmd = float(np.clip(delta_cmd, self.delta_min, self.delta_max))
+        self.last_steer_cmd = delta_cmd
+
         self._publish(speed_cmd, delta_cmd)
 
     # --------------------------------------------------------- reference build
@@ -240,25 +303,46 @@ class MPCKarimNode(Node):
         return int(np.argmin(d2))
 
     def _build_reference(self, state: np.ndarray) -> np.ndarray:
-        """Pick N+1 waypoints starting from the closest one (with wrap-around)."""
+        """Pick N+1 waypoints by arc-length distance ahead of the nearest point.
+
+        The k-th reference is sampled at s_k = s_nearest + max(v, v_min) * k * dt.
+        This keeps the lookahead horizon covering the same physical distance the
+        car will travel in N*dt, regardless of waypoint spacing.
+        """
         n = self.path_xy.shape[0]
         i0 = self._nearest_index(state[0], state[1])
-        idx = [(i0 + k) % n for k in range(self.N + 1)]
+        v_lookahead = max(float(state[2]), self.min_lookahead_speed)
+
+        total_len = float(self.path_s[-1]) + float(
+            np.hypot(self.path_xy[0, 0] - self.path_xy[-1, 0],
+                     self.path_xy[0, 1] - self.path_xy[-1, 1])
+        )
+        s0 = float(self.path_s[i0])
 
         ref = np.zeros((4, self.N + 1))
-        ref[0, :] = self.path_xy[idx, 0]
-        ref[1, :] = self.path_xy[idx, 1]
-        ref[2, :] = self.path_v[idx]
-        theta_ref = self.path_theta[idx].copy()
+        theta_seq = np.zeros(self.N + 1)
+        for k in range(self.N + 1):
+            sk = (s0 + v_lookahead * k * self.dt) % total_len
+            idx = int(np.searchsorted(self.path_s, sk, side='right') - 1)
+            idx = max(0, min(idx, n - 1))
+            idx_next = (idx + 1) % n
+            seg_len = self.path_s[idx_next] - self.path_s[idx] if idx_next > idx \
+                else total_len - self.path_s[idx]
+            t = 0.0 if seg_len <= 1e-9 else (sk - self.path_s[idx]) / seg_len
+            t = float(np.clip(t, 0.0, 1.0))
+            ref[0, k] = (1 - t) * self.path_xy[idx, 0] + t * self.path_xy[idx_next, 0]
+            ref[1, k] = (1 - t) * self.path_xy[idx, 1] + t * self.path_xy[idx_next, 1]
+            ref[2, k] = (1 - t) * self.path_v[idx] + t * self.path_v[idx_next]
+            theta_seq[k] = self.path_theta[idx]  # piecewise-constant heading
 
-        # Unwrap so jumps across +/-pi don't blow up the cost.
-        theta_ref = np.unwrap(theta_ref)
-        # Bring the unwrapped reference close to the current yaw.
-        while theta_ref[0] - state[3] > math.pi:
-            theta_ref -= 2 * math.pi
-        while theta_ref[0] - state[3] < -math.pi:
-            theta_ref += 2 * math.pi
-        ref[3, :] = theta_ref
+        # Unwrap headings so jumps across +/-pi don't blow up the cost,
+        # and pull them close to the current yaw.
+        theta_seq = np.unwrap(theta_seq)
+        while theta_seq[0] - state[3] > math.pi:
+            theta_seq -= 2 * math.pi
+        while theta_seq[0] - state[3] < -math.pi:
+            theta_seq += 2 * math.pi
+        ref[3, :] = theta_seq
         return ref
 
     def _publish(self, speed: float, steer: float) -> None:

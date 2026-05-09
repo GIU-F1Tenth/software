@@ -25,6 +25,8 @@ class KinematicBicycleMPC:
         q_theta: float,
         r_a: float,
         r_delta: float,
+        r_da: float,
+        r_ddelta: float,
         a_min: float,
         a_max: float,
         delta_min: float,
@@ -41,15 +43,19 @@ class KinematicBicycleMPC:
         U = opti.variable(2, self.N)
         x0 = opti.parameter(4)
         Xref = opti.parameter(4, self.N + 1)
+        u_prev = opti.parameter(2)
 
         Q = ca.diag(ca.DM([q_x, q_y, q_v, q_theta]))
         R = ca.diag(ca.DM([r_a, r_delta]))
+        Rd = ca.diag(ca.DM([r_da, r_ddelta]))
 
         cost = 0
         for k in range(self.N):
             err = X[:, k] - Xref[:, k]
             cost += ca.mtimes([err.T, Q, err])
             cost += ca.mtimes([U[:, k].T, R, U[:, k]])
+            du = U[:, k] - (u_prev if k == 0 else U[:, k - 1])
+            cost += ca.mtimes([du.T, Rd, du])
         err_N = X[:, self.N] - Xref[:, self.N]
         cost += ca.mtimes([err_N.T, Q, err_N])
         opti.minimize(cost)
@@ -81,13 +87,16 @@ class KinematicBicycleMPC:
         self._U = U
         self._x0 = x0
         self._Xref = Xref
+        self._u_prev = u_prev
         self._U_warm = np.zeros((2, self.N))
         self._X_warm = np.zeros((4, self.N + 1))
+        self._u_prev_val = np.zeros(2)
 
     def solve(self, current_state: np.ndarray, x_ref: np.ndarray):
         """current_state: shape (4,), x_ref: shape (4, N+1). Returns (a, delta) or None."""
         self._opti.set_value(self._x0, current_state)
         self._opti.set_value(self._Xref, x_ref)
+        self._opti.set_value(self._u_prev, self._u_prev_val)
         self._opti.set_initial(self._U, self._U_warm)
         self._opti.set_initial(self._X, self._X_warm)
         try:
@@ -98,4 +107,6 @@ class KinematicBicycleMPC:
         x = sol.value(self._X)
         self._U_warm = np.hstack([u[:, 1:], u[:, -1:]])
         self._X_warm = np.hstack([x[:, 1:], x[:, -1:]])
-        return float(u[0, 0]), float(u[1, 0])
+        a0, d0 = float(u[0, 0]), float(u[1, 0])
+        self._u_prev_val = np.array([a0, d0])
+        return a0, d0
