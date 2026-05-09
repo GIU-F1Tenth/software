@@ -68,12 +68,28 @@ def rotation_matrix(theta):
     c, s = np.cos(theta), np.sin(theta)
     return np.matrix([[c, -s], [s, c]])
 
+def normalize_angle(z):
+    if -np.pi <= z <= np.pi:
+        return z
+    return np.arctan2(np.sin(z), np.cos(z))
+
+def angle_diff(a, b):
+    a = normalize_angle(a)
+    b = normalize_angle(b)
+    d1 = a - b
+    d2 = 2.0 * np.pi - np.abs(d1)
+    if d1 > 0:
+        d2 *= -1.0
+    if np.abs(d1) < np.abs(d2):
+        return d1
+    return d2
+
 def particle_to_pose(particle):
     ''' Converts a particle in the form [x, y, theta] into a Pose object '''
     pose = Pose()
-    pose.position.x = particle[0]
-    pose.position.y = particle[1]
-    pose.orientation = angle_to_quaternion(particle[2])
+    pose.position.x = float(particle[0])
+    pose.position.y = float(particle[1])
+    pose.orientation = angle_to_quaternion(float(particle[2]))
     return pose
 
 def particles_to_poses(particles):
