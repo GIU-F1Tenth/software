@@ -206,6 +206,11 @@ ros2 run nav2_map_server map_saver_cli
 ros2 run nav2_map_server map_saver_cli --fmt png
 
 ```
+or 
+
+```bash
+python scripts/save_map_and_send.py
+```
 
 #### Racing Mode
 For autonomous racing with pre-built maps:
