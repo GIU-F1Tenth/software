@@ -148,6 +148,8 @@ class FSMNode(Node):
             return "dwa"
         if StateTraits.KAYN in current_state_traits: 
             return "kayn"
+        if StateTraits.MPC_KARIM in current_state_traits:
+            return "mpc_karim"
         return NotImplemented
         
         

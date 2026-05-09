@@ -11,6 +11,7 @@ class StateTraits(IntFlag):
     DWA = auto()
     LQR = auto()
     KAYN = auto()
+    MPC_KARIM = auto()
     
     TRAILING = auto()
     STOP = auto()
