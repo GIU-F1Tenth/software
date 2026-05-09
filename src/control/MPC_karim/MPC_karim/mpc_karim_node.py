@@ -28,7 +28,7 @@ from std_msgs.msg import String
 from MPC_karim.mpc_solver import KinematicBicycleMPC
 
 
-CONTROLLER_NAME = 'MPC_karim'
+CONTROLLER_NAME = 'mpc_karim'
 
 
 def euler_from_quaternion(quaternion):
@@ -129,7 +129,11 @@ class MPCKarimNode(Node):
         self.drive_pub = self.create_publisher(
             AckermannDriveStamped, self.drive_topic, 10
         )
-        self.create_subscription(Odometry, self.odom_topic, self._odom_cb, 10)
+
+        odom_qos_profile = rclpy.qos.QoSProfile(reliability=rclpy.qos.ReliabilityPolicy.BEST_EFFORT,
+                                                history=rclpy.qos.HistoryPolicy.KEEP_LAST,
+                                                depth=10)
+        self.create_subscription(Odometry, self.odom_topic, self._odom_cb, odom_qos_profile)
         self.create_subscription(
             String, self.selector_topic, self._selector_cb, 10
         )
