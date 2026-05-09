@@ -330,7 +330,8 @@ class AmclParticleFilter(Node):
         return state[0]
 
     def precompute_sensor_model(self):
-        z_short, z_max, z_rand, z_hit, sigma_hit = self.Z_SHORT, self.Z_MAX, self.Z_RAND, self.Z_HIT, self.SIGMA_HIT
+        z_short, z_max, z_rand, z_hit = self.Z_SHORT, self.Z_MAX, self.Z_RAND, self.Z_HIT
+        sigma_hit = self.SIGMA_HIT / self.map_info.resolution
         table_width = int(self.MAX_RANGE_PX) + 1
         self.sensor_model_table = np.zeros((table_width, table_width))
 
