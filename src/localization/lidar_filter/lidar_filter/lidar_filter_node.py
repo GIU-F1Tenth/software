@@ -78,8 +78,8 @@ class LidarFilterNode(Node):
         angles = msg.angle_min + np.arange(ranges.size) * msg.angle_increment
         pose_x, pose_y, pose_yaw = self.latest_pose
 
-        keep = run_pipeline(self.filters, ranges, angles, pose_x, pose_y, pose_yaw)
-        filtered = np.where(keep, ranges, FILTERED_RANGE).astype(np.float32)
+        filtered_ranges = run_pipeline(self.filters, ranges, angles, pose_x, pose_y, pose_yaw)
+        filtered = filtered_ranges.astype(np.float32)
 
         out = LaserScan()
         out.header = msg.header

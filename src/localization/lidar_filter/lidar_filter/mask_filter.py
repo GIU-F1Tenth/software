@@ -32,7 +32,7 @@ class MaskFilter(Filter):
             origin=payload.get("origin", [0.0, 0.0, 0.0]),
         )
 
-    def keep_points(self, points_x, points_y):
+    def __points_to_keep(self, points_x, points_y):
         points_x = np.asarray(points_x, dtype=np.float64)
         points_y = np.asarray(points_y, dtype=np.float64)
         dx = points_x - self.origin_x
@@ -48,10 +48,14 @@ class MaskFilter(Filter):
         keep[in_bounds] = self.mask[rows[in_bounds], cols[in_bounds]]
         return keep
 
-    def filter_scan(self, ranges, angles, pose_x, pose_y, pose_yaw):
+    def filter_scan(self, ranges, angles, pose_x, pose_y, pose_yaw) -> np.ndarray:
+        ranges = np.asarray(ranges, dtype=np.float64)
         _, finite, px, py = scan_to_world_points(ranges, angles, pose_x, pose_y, pose_yaw)
-        keep = np.zeros(finite.shape, dtype=bool)
+        out = ranges.copy()
         if not finite.any():
-            return keep
-        keep[finite] = self.keep_points(px[finite], py[finite])
-        return keep
+            out[~finite] = np.inf
+            return out
+        keep = np.zeros(ranges.shape, dtype=bool)
+        keep[finite] = self.__points_to_keep(px[finite], py[finite])
+        out[~keep] = np.inf
+        return out
