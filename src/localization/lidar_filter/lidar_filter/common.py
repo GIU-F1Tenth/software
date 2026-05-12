@@ -17,7 +17,6 @@ def scan_to_world_points(ranges, angles, pose_x, pose_y, pose_yaw):
 
 def run_pipeline(filters, ranges, angles, pose_x, pose_y, pose_yaw):
     ranges = np.asarray(ranges, dtype=np.float64)
-    if not filters:
-        return np.ones(ranges.shape, dtype=bool)
-    results = [f.filter_scan(ranges, angles, pose_x, pose_y, pose_yaw) for f in filters]
-    return np.logical_and.reduce(results)
+    for f in filters:
+        ranges = f.filter_scan(ranges, angles, pose_x, pose_y, pose_yaw)
+    return ranges
