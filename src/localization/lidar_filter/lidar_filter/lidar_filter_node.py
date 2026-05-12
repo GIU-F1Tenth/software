@@ -57,7 +57,7 @@ class LidarFilterNode(Node):
 
         self.create_subscription(Odometry, odom_topic, self._odom_callback, qos)
         self.create_subscription(LaserScan, scan_input_topic, self._scan_callback, qos)
-        self.scan_publisher = self.create_publisher(LaserScan, scan_output_topic, qos)
+        self.scan_publisher = self.create_publisher(LaserScan, scan_output_topic)
 
     def _odom_callback(self, msg: Odometry):
         position = msg.pose.pose.position
