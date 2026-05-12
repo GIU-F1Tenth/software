@@ -8,7 +8,7 @@ from nav_msgs.msg import Odometry
 from scipy.spatial.transform import Rotation
 
 from lidar_filter.common import run_pipeline
-from localization.lidar_filter.lidar_filter.mask_and_spoof_filter import MaskAndSpoofFilter
+from lidar_filter.lidar_filter.mask_and_spoof_filter import MaskAndSpoofFilter
 from lidar_filter.range_filter import RangeFilter
 
 
