@@ -57,7 +57,7 @@ class LidarFilterNode(Node):
 
         self.create_subscription(Odometry, odom_topic, self._odom_callback, qos)
         self.create_subscription(LaserScan, scan_input_topic, self._scan_callback, qos)
-        self.scan_publisher = self.create_publisher(LaserScan, scan_output_topic)
+        self.scan_publisher = self.create_publisher(LaserScan, scan_output_topic, 10)
 
     def _odom_callback(self, msg: Odometry):
         position = msg.pose.pose.position
@@ -68,9 +68,10 @@ class LidarFilterNode(Node):
     def _scan_callback(self, msg: LaserScan):
         if self.latest_pose is None:
             self.get_logger().warn(
-                "no odometry received yet; dropping scan",
+                "no odometry received yet; publishing non-filtered scan",
                 throttle_duration_sec=1.0,
             )
+            self.scan_publisher.publish(msg)
             return
 
         ranges = np.asarray(msg.ranges, dtype=np.float64)
