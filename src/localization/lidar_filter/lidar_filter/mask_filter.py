@@ -3,8 +3,11 @@ from pathlib import Path
 
 import numpy as np
 
+from lidar_filter.common import scan_to_world_points
+from lidar_filter.filter_base import Filter
 
-class MaskFilter:
+
+class MaskFilter(Filter):
     def __init__(self, mask, resolution, origin):
         self.mask = np.asarray(mask, dtype=bool)
         if self.mask.ndim != 2:
@@ -46,18 +49,9 @@ class MaskFilter:
         return keep
 
     def filter_scan(self, ranges, angles, pose_x, pose_y, pose_yaw):
-        ranges = np.asarray(ranges, dtype=np.float64)
-        angles = np.asarray(angles, dtype=np.float64)
-        if ranges.shape != angles.shape:
-            raise ValueError(
-                f"ranges and angles must have the same shape, got {ranges.shape} vs {angles.shape}"
-            )
-        finite = np.isfinite(ranges)
-        keep = np.zeros(ranges.shape, dtype=bool)
+        _, finite, px, py = scan_to_world_points(ranges, angles, pose_x, pose_y, pose_yaw)
+        keep = np.zeros(finite.shape, dtype=bool)
         if not finite.any():
             return keep
-        world_angles = pose_yaw + angles[finite]
-        px = pose_x + ranges[finite] * np.cos(world_angles)
-        py = pose_y + ranges[finite] * np.sin(world_angles)
-        keep[finite] = self.keep_points(px, py)
+        keep[finite] = self.keep_points(px[finite], py[finite])
         return keep
