@@ -7,7 +7,9 @@ from sensor_msgs.msg import LaserScan
 from nav_msgs.msg import Odometry
 from scipy.spatial.transform import Rotation
 
+from lidar_filter.common import run_pipeline
 from lidar_filter.mask_filter import MaskFilter
+from lidar_filter.range_filter import RangeFilter
 
 
 FILTERED_RANGE = float("inf")
@@ -21,22 +23,29 @@ class LidarFilterNode(Node):
         self.declare_parameter("scan_output_topic", "/scan_filtered")
         self.declare_parameter("odom_topic", "/car_state/odom")
         self.declare_parameter("mask_path", "")
+        self.declare_parameter("max_range", -1.0)
         self.declare_parameter("queue_depth", 10)
 
         scan_input_topic = self.get_parameter("scan_input_topic").value
         scan_output_topic = self.get_parameter("scan_output_topic").value
         odom_topic = self.get_parameter("odom_topic").value
         mask_path = self.get_parameter("mask_path").value
+        max_range = float(self.get_parameter("max_range").value)
         queue_depth = int(self.get_parameter("queue_depth").value)
 
         if not mask_path:
             raise RuntimeError("mask_path parameter must be set to a mask JSON file")
 
-        self.mask_filter = MaskFilter.from_json(mask_path)
+        mask_filter = MaskFilter.from_json(mask_path)
         self.get_logger().info(
-            f"loaded mask {mask_path} shape={self.mask_filter.mask.shape} "
-            f"resolution={self.mask_filter.resolution}"
+            f"loaded mask {mask_path} shape={mask_filter.mask.shape} "
+            f"resolution={mask_filter.resolution}"
         )
+
+        self.filters = [mask_filter]
+        if max_range > 0:
+            self.filters.append(RangeFilter(max_range))
+            self.get_logger().info(f"range filter enabled with max_range={max_range}")
 
         self.latest_pose = None
 
@@ -68,7 +77,7 @@ class LidarFilterNode(Node):
         angles = msg.angle_min + np.arange(ranges.size) * msg.angle_increment
         pose_x, pose_y, pose_yaw = self.latest_pose
 
-        keep = self.mask_filter.filter_scan(ranges, angles, pose_x, pose_y, pose_yaw)
+        keep = run_pipeline(self.filters, ranges, angles, pose_x, pose_y, pose_yaw)
         filtered = np.where(keep, ranges, FILTERED_RANGE).astype(np.float32)
 
         out = LaserScan()
