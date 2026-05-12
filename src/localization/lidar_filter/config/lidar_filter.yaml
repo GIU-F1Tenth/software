@@ -1,0 +1,7 @@
+lidar_filter:
+  ros__parameters:
+    scan_input_topic: "/scan"
+    scan_output_topic: "/scan_filtered"
+    odom_topic: "/car_state/odom"
+    mask_path: ""
+    queue_depth: 10
