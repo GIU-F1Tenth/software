@@ -1,3 +1,6 @@
+import os
+from glob import glob
+
 from setuptools import find_packages, setup
 
 package_name = 'lidar_filter'
@@ -10,12 +13,14 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        (os.path.join('share', package_name, 'launch'), glob('launch/*.py')),
+        (os.path.join('share', package_name, 'config'), glob('config/*.yaml')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='Fam Shihata',
     maintainer_email='fam@awadlouis.com',
-    description='TODO: Package description',
+    description='ROS2 node that filters LaserScan points against a binary map mask',
     license='MIT',
     extras_require={
         'test': [
@@ -24,6 +29,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'lidar_filter=lidar_filter.lidar_filter_node:main',
         ],
     },
 )
