@@ -8,7 +8,7 @@ from nav_msgs.msg import Odometry
 from scipy.spatial.transform import Rotation
 
 from lidar_filter.common import run_pipeline
-from lidar_filter.mask_filter import MaskFilter
+from localization.lidar_filter.lidar_filter.mask_and_spoof_filter import MaskAndSpoofFilter
 from lidar_filter.range_filter import RangeFilter
 
 
@@ -36,7 +36,7 @@ class LidarFilterNode(Node):
         if not mask_path:
             raise RuntimeError("mask_path parameter must be set to a mask JSON file")
 
-        mask_filter = MaskFilter.from_json(mask_path)
+        mask_filter = MaskAndSpoofFilter.from_json(mask_path)
         self.get_logger().info(
             f"loaded mask {mask_path} shape={mask_filter.mask.shape} "
             f"resolution={mask_filter.resolution}"
