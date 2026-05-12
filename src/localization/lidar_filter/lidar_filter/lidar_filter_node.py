@@ -26,6 +26,7 @@ class LidarFilterNode(Node):
         self.declare_parameter("max_range", -1.0)
         self.declare_parameter("queue_depth", 10)
         self.declare_parameter("should_spoof", False)
+        self.declare_parameter("should_filter", True)
 
         scan_input_topic = self.get_parameter("scan_input_topic").value
         scan_output_topic = self.get_parameter("scan_output_topic").value
@@ -34,6 +35,7 @@ class LidarFilterNode(Node):
         max_range = float(self.get_parameter("max_range").value)
         queue_depth = int(self.get_parameter("queue_depth").value)
         should_spoof = self.get_parameter("should_spoof").value
+        self.should_filter = self.get_parameter("should_filter").value
 
         if not mask_path:
             raise RuntimeError("mask_path parameter must be set to a mask JSON file")
@@ -69,6 +71,10 @@ class LidarFilterNode(Node):
         self.latest_pose = (position.x, position.y, float(yaw))
 
     def _scan_callback(self, msg: LaserScan):
+        if not self.should_filter: 
+            self.scan_publisher.publish(msg) 
+            return
+        
         if self.latest_pose is None:
             self.get_logger().warn(
                 "no odometry received yet; publishing non-filtered scan",
