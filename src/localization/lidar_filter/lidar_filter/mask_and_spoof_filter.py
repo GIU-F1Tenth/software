@@ -21,6 +21,7 @@ class MaskAndSpoofFilter(Filter):
         self._cos_yaw = float(np.cos(self.origin_yaw))
         self._sin_yaw = float(np.sin(self.origin_yaw))
         self.height, self.width = self.mask.shape
+        self.should_spoof = False
 
     @classmethod
     def from_json(cls, path):
@@ -60,9 +61,9 @@ class MaskAndSpoofFilter(Filter):
         valid = finite & keep
         spoof_targets = finite & ~keep
         out[~valid] = np.inf
-        if valid.sum() < 4 or not spoof_targets.any():
+        if valid.sum() < 4 or not spoof_targets.any() or not self.should_spoof:
             return out
-        spline = CubicSpline(angles[valid], ranges[valid], bc_type="natural", extrapolate=False)
+        spline = CubicSpline(angles[valid][10::3], ranges[valid][10::3], bc_type="natural", extrapolate=False)
         spoofed = spline(angles[spoof_targets])
         idx = np.where(spoof_targets)[0]
         ok = np.isfinite(spoofed)
