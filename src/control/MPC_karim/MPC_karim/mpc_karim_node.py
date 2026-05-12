@@ -104,6 +104,10 @@ class MPCKarimNode(Node):
         self.declare_parameter('min_lookahead_speed', 1.0)
         self.declare_parameter('theta_smooth_window', 5)
         self.declare_parameter('steer_rate_limit', 4.0)  # rad/s on published cmd
+        # Shifts the first reference sample forward along the path so the MPC
+        # plans into the corner instead of toward whatever waypoint is laterally
+        # nearest to the car right now.
+        self.declare_parameter('reference_lookahead_distance', 0.0)
 
         # Resolve params
         self.odom_topic = self.get_parameter('odom_topic').value
@@ -119,6 +123,9 @@ class MPCKarimNode(Node):
         self.min_lookahead_speed = float(self.get_parameter('min_lookahead_speed').value)
         self.theta_smooth_window = int(self.get_parameter('theta_smooth_window').value)
         self.steer_rate_limit = float(self.get_parameter('steer_rate_limit').value)
+        self.reference_lookahead_distance = float(
+            self.get_parameter('reference_lookahead_distance').value
+        )
 
         self.path_xy: np.ndarray = np.zeros((0, 2))
         self.path_v: np.ndarray = np.zeros((0,))
@@ -322,7 +329,8 @@ class MPCKarimNode(Node):
         ref = np.zeros((4, self.N + 1))
         theta_seq = np.zeros(self.N + 1)
         for k in range(self.N + 1):
-            sk = (s0 + v_lookahead * k * self.dt) % total_len
+            sk = (s0 + self.reference_lookahead_distance
+                  + v_lookahead * k * self.dt) % total_len
             idx = int(np.searchsorted(self.path_s, sk, side='right') - 1)
             idx = max(0, min(idx, n - 1))
             idx_next = (idx + 1) % n
