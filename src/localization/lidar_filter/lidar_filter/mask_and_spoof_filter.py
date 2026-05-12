@@ -2,12 +2,13 @@ import json
 from pathlib import Path
 
 import numpy as np
+from scipy.interpolate import CubicSpline
 
 from lidar_filter.common import scan_to_world_points
 from lidar_filter.filter_base import Filter
 
 
-class MaskFilter(Filter):
+class MaskAndSpoofFilter(Filter):
     def __init__(self, mask, resolution, origin):
         self.mask = np.asarray(mask, dtype=bool)
         if self.mask.ndim != 2:
@@ -50,12 +51,20 @@ class MaskFilter(Filter):
 
     def filter_scan(self, ranges, angles, pose_x, pose_y, pose_yaw) -> np.ndarray:
         ranges = np.asarray(ranges, dtype=np.float64)
+        angles = np.asarray(angles, dtype=np.float64)
         _, finite, px, py = scan_to_world_points(ranges, angles, pose_x, pose_y, pose_yaw)
         out = ranges.copy()
-        if not finite.any():
-            out[~finite] = np.inf
-            return out
         keep = np.zeros(ranges.shape, dtype=bool)
-        keep[finite] = self.__points_to_keep(px[finite], py[finite])
-        out[~keep] = np.inf
+        if finite.any():
+            keep[finite] = self.__points_to_keep(px[finite], py[finite])
+        valid = finite & keep
+        spoof_targets = finite & ~keep
+        out[~valid] = np.inf
+        if valid.sum() < 4 or not spoof_targets.any():
+            return out
+        spline = CubicSpline(angles[valid], ranges[valid], bc_type="natural", extrapolate=False)
+        spoofed = spline(angles[spoof_targets])
+        idx = np.where(spoof_targets)[0]
+        ok = np.isfinite(spoofed)
+        out[idx[ok]] = spoofed[ok]
         return out
