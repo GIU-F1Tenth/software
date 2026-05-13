@@ -23,7 +23,6 @@ class LidarFilterNode(Node):
         self.declare_parameter("scan_output_topic", "/scan_filtered")
         self.declare_parameter("odom_topic", "/car_state/odom")
         self.declare_parameter("mask_path", "")
-        self.declare_parameter("map_path", "")
         self.declare_parameter("max_range", -1.0)
         self.declare_parameter("queue_depth", 10)
         self.declare_parameter("should_spoof", False)
@@ -33,7 +32,6 @@ class LidarFilterNode(Node):
         scan_output_topic = self.get_parameter("scan_output_topic").value
         odom_topic = self.get_parameter("odom_topic").value
         mask_path = self.get_parameter("mask_path").value
-        map_path = self.get_parameter("map_path").value
         max_range = float(self.get_parameter("max_range").value)
         queue_depth = int(self.get_parameter("queue_depth").value)
         should_spoof = self.get_parameter("should_spoof").value
@@ -42,12 +40,11 @@ class LidarFilterNode(Node):
         if not mask_path:
             raise RuntimeError("mask_path parameter must be set to a mask JSON file")
 
-        mask_filter = MaskAndSpoofFilter.from_json(mask_path, map_path=map_path or None)
+        mask_filter = MaskAndSpoofFilter.from_json(mask_path)
         mask_filter.should_spoof = should_spoof
         self.get_logger().info(
             f"loaded mask {mask_path} shape={mask_filter.mask.shape} "
             f"resolution={mask_filter.resolution}"
-            + (f" map={map_path}" if map_path else "")
         )
 
         self.filters = [mask_filter]
