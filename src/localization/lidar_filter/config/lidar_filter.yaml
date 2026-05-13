@@ -4,5 +4,6 @@ lidar_filter:
     scan_output_topic: "/scan/filtered"
     odom_topic: "/car_state/odom"
     mask_path: "/home/jetson/Desktop/mechabyte/software/src/giu_f1t_system/f1tenth_stack/maps/map.mask.json"
+    map_path: "/home/jetson/Desktop/mechabyte/software/src/giu_f1t_system/f1tenth_stack/maps/map.png"
     max_range: 2.0
     queue_depth: 10
