@@ -63,3 +63,6 @@
 [submodule "src/control/kayn_controller"]
 	path = src/control/kayn_controller
 	url = https://github.com/GIU-F1Tenth/kayn-controller
+[submodule "src/planning/horizon_mapper"]
+	path = src/planning/horizon_mapper
+	url = https://github.com/GIU-F1Tenth/horizon_mapper.git
