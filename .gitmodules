@@ -1,14 +1,6 @@
 [submodule "src/drivers/urg_node2"]
 	path = src/drivers/urg_node2
 	url = https://github.com/Hokuyo-aut/urg_node2
-[submodule "src/control/pid_controller"]
-	path = src/control/pid_controller
-	url = https://github.com/GIU-F1Tenth/pid_controller.git
-	branch = main
-[submodule "src/control/mpc_controller"]
-	path = src/control/mpc_controller
-	url = https://github.com/GIU-F1Tenth/mpc_controller.git
-	branch = main
 [submodule "src/perception/obj_detection"]
 	path = src/perception/obj_detection
 	url = https://github.com/GIU-F1Tenth/obj_detection.git
@@ -57,9 +49,6 @@
 [submodule "src/planning/trajectory_planning"]
 	path = src/planning/trajectory_planning
 	url = https://github.com/GIU-F1Tenth/trajectory_planning.git
-[submodule "src/drivers/imu_driver"]
-	path = src/drivers/imu_driver
-	url = https://github.com/GIU-F1Tenth/imu_driver.git
 [submodule "src/control/kayn_controller"]
 	path = src/control/kayn_controller
 	url = https://github.com/GIU-F1Tenth/kayn-controller
