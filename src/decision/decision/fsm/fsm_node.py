@@ -4,12 +4,15 @@ from typing import Dict, Optional
 
 from decision.fsm.state import State, StateType, StateTraits
 import rclpy
+from rclpy.qos import qos_profile_sensor_data
 from rclpy.node import Node
 from std_msgs.msg import String, Bool
 from visualization_msgs.msg import MarkerArray
 
 import time
+import csv
 from decision.fsm import FSM
+import numpy as np
 
 
 class SimpleFSM(FSM):
@@ -106,24 +109,34 @@ class FSMNode(Node):
         self.declare_parameter("objects_topic", "objects")
         self.declare_parameter("output_topic", "fsm_state")
         self.declare_parameter("trailing_topic", "trailing")
+        self.declare_parameter("odom_topic", "/car_state/odom")
+        self.declare_parameter("overtaking_allowed_file_path", "")
 
         states_list = self.get_parameter("states").value
         initial_state = self.get_parameter("initial_state").value
         objects_topic = self.get_parameter("objects_topic").value
         control_output_topic = self.get_parameter("output_topic").value
         trailing_topic = self.get_parameter("trailing_topic").value
+        overtaking_allowed_file_path = self.get_parameter("overtaking_allowed_file_path").value
+        odom_topic = self.get_parameter("odom_topic").value
 
         self.fsm = SimpleFSM(states_list, initial_state)
+        self.overtaking_allowed = []
+        self.__load_overtaking_data(overtaking_allowed_file_path)
 
         self.control_publisher = self.create_publisher(String, control_output_topic, 10)
         self.trailing_topic = self.create_publisher(Bool, trailing_topic, 10)
 
-        self.subscription = self.create_subscription(
+        self.object_detection_sub = self.create_subscription(
             MarkerArray, objects_topic, self.objects_callback, 10
         )
+        self.odom_sub = self.create_subscription(
+            MarkerArray, odom_topic, self.odom_callback, qos_profile_sensor_data
+        )
+        self.current_position = (0.0, 0.0)
 
     def objects_callback(self, msg):
-        self.fsm.run_once(objects=msg.markers[1:], is_overtake_region=False) # TODO: implement overtaking region
+        self.fsm.run_once(objects=msg.markers[1:], is_overtake_region=self.__get_current_overtaking_allowed_point())
         state_str = self.fsm.current_state.state_type.name
         self.get_logger().info(
             f"Current FSM state: {state_str}", throttle_duration_sec=1.0
@@ -136,6 +149,9 @@ class FSMNode(Node):
         trail_output_msg.data = StateTraits.TRAILING in self.fsm.current_state.state_type.state_traits
         self.trailing_topic.publish(trail_output_msg)
         
+    def odom_callback(self, msg):
+        self.current_position = (msg.pose.pose.position.x, msg.pose.pose.position.y)    
+    
     def __get_control_topic_from_current_state(self) -> str:
         current_state_traits = self.fsm.current_state.state_type.state_traits
         if StateTraits.PURE_PURSUIT in current_state_traits:
@@ -152,8 +168,47 @@ class FSMNode(Node):
             return "mpc_karim"
         return NotImplemented
         
-        
+    def __load_overtaking_data(self, overtaking_allowed_file_path):
+        if not overtaking_allowed_file_path:
+            self.get_logger().warn("no overtaking_allowed_file_path provided")
+            return
 
+        try:
+            with open(overtaking_allowed_file_path, newline="") as csv_file:
+                reader = csv.reader(csv_file)
+                for row in reader:
+                    if len(row) < 3:
+                        continue
+                    x_raw, y_raw, allowed_raw = (cell.strip() for cell in row[:3])
+                    try:
+                        x = float(x_raw)
+                        y = float(y_raw)
+                    except ValueError:
+                        # Skip header or malformed rows.
+                        continue
+                    overtaking_allowed = allowed_raw.lower() in ("true", "1", "yes")
+                    self.overtaking_allowed.append((x, y, overtaking_allowed))
+        except OSError as exc:
+            self.get_logger().error(
+                f"failed to load overtaking data from {overtaking_allowed_file_path!r}: {exc}"
+            )
+            return
+
+        self.get_logger().info(
+            f"loaded {len(self.overtaking_allowed)} overtaking path points"
+        )
+
+    def __get_current_overtaking_allowed_point(self): 
+        if not self.overtaking_allowed:
+            return False
+
+        current_x, current_y = self.current_position
+        closest_point = np.min(
+            self.overtaking_allowed, 
+            key=lambda point: (point[0] - current_x) ** 2 + (point[1] - current_y) ** 2
+        )
+        return closest_point[2]
+        
 
 def main(args=None):
     rclpy.init(args=args)
