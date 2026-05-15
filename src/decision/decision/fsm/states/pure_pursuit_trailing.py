@@ -28,4 +28,4 @@ class PurePursuitTrailingState(State):
         return self._state_type.state_traits
     
     def __is_safe_to_overtake(self):
-        return True
+        return False

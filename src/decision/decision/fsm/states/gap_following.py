@@ -13,7 +13,7 @@ class GapFollowingState(State):
     _state_type = StateType(
         name="gap_following", state_traits=StateTraits.GAP_FOLLOWING
     )
-    _minimum_time_in_state = 3.4
+    _minimum_time_in_state = 2.4
 
     @property
     def state_type(self) -> StateType:
