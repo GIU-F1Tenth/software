@@ -12,7 +12,6 @@ from visualization_msgs.msg import MarkerArray
 import time
 import csv
 from decision.fsm import FSM
-import numpy as np
 
 
 class SimpleFSM(FSM):
@@ -203,7 +202,7 @@ class FSMNode(Node):
             return False
 
         current_x, current_y = self.current_position
-        closest_point = np.min(
+        closest_point = min(
             self.overtaking_allowed, 
             key=lambda point: (point[0] - current_x) ** 2 + (point[1] - current_y) ** 2
         )
