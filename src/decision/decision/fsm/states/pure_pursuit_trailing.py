@@ -14,6 +14,8 @@ class PurePursuitTrailingState(State):
         name="pure_pursuit_trailing",
         state_traits=StateTraits.PURE_PURSUIT | StateTraits.TRAILING,
     )
+    
+    _minimum_time_in_state = 5.0
 
     @property
     def state_type(self) -> StateType:
