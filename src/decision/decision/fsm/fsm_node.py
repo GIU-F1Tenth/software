@@ -60,7 +60,7 @@ class SimpleFSM(FSM):
         """Return the active state instance."""
         return self._current_state
 
-    def run_once(self, objects: Optional[Collection]):
+    def run_once(self, objects: Optional[Collection], is_overtake_region: bool = False):
         """Perform one execution and transition step.
 
         - Calls the current state's `execute`.
@@ -73,7 +73,7 @@ class SimpleFSM(FSM):
             ValueError: if the returned StateType is not part of the pool.
         """
         elapsed_time = time.perf_counter() - self.__state_time
-        next_type_traits = self._current_state.transition(objects=objects)
+        next_type_traits = self._current_state.transition(objects=objects, is_overtake_region=is_overtake_region)
 
         if not isinstance(next_type_traits, StateTraits):
             raise ValueError("transition must return a StateType")
@@ -123,7 +123,7 @@ class FSMNode(Node):
         )
 
     def objects_callback(self, msg):
-        self.fsm.run_once(objects=msg.markers[1:])
+        self.fsm.run_once(objects=msg.markers[1:], is_overtake_region=False) # TODO: implement overtaking region
         state_str = self.fsm.current_state.state_type.name
         self.get_logger().info(
             f"Current FSM state: {state_str}", throttle_duration_sec=1.0
