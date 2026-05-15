@@ -7,3 +7,5 @@ fsm_node:
     objects_topic: objects
     output_topic: fsm_state
     trailing_topic: trailing
+    odom_topic: /car_state/odom
+    overtaking_allowed_file_path: ""
