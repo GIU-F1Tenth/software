@@ -22,11 +22,8 @@ class PurePursuitTrailingState(State):
     def transition(self, objects: Optional[Collection[Any]] = None, is_overtake_region: bool = False) -> StateTraits:
         if objects is not None and len(objects) > 0:
             if is_overtake_region and self.__is_safe_to_overtake():
-                return StateTraits.GAP_FOLLOWING
-            else:
-                return self._state_type.state_traits
-        else:
-            return self._state_type.state_traits
+                return StateTraits.GAP_FOLLOWING    
+        return self._state_type.state_traits
     
     def __is_safe_to_overtake(self):
         return True
