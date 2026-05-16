@@ -17,12 +17,20 @@ class TeleopSwitcher(Node):
         self.declare_parameter("joy_topic", "/joy")
         self.declare_parameter("selector_topic", "/control_selector")
         self.declare_parameter("debounce_time", 0.5)
-
+        self.declare_parameter("controller_mode", "black") # "gray" or "black"
+        self.declare_parameter("black_manual_button_index", 7)
+        self.declare_parameter("gray_manual_button_index", 9)
         self.declare_parameter("manual_button_index", 7)
+
+        self.index = 7
+        if self.get_parameter("controller_mode").value == "black":
+           self.index = self.get_parameter("black_manual_button_index").value
+        else:
+            self.index = self.get_parameter("gray_manual_button_index").value
 
         self.joy_topic = self.get_parameter("joy_topic").value
         self.selector_topic = self.get_parameter("selector_topic").value
-        self.manual_button_index = int(self.get_parameter("manual_button_index").value)
+        self.manual_button_index = int(self.index)
         self.debounce_time = float(self.get_parameter("debounce_time").value)
 
         self.selector_pub = self.create_publisher(Bool, self.selector_topic, 10)

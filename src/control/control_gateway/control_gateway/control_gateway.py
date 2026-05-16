@@ -21,18 +21,28 @@ class ControlGateway(Node):
         self.declare_parameter("joy_topic", "/joy")
         self.declare_parameter("selector_topic", "/control_selector")
         self.declare_parameter("drive_topic", "/drive")
-        self.declare_parameter("enable_button_index", 4)
+        
         self.declare_parameter(
             "manual_auto_swap_topic", "/control_gateway/switch_manual_auto"
         )
         self.declare_parameter("default_controller", "pure_pursuit")
         self.declare_parameter("trailing_topic", "/trailing")
         self.declare_parameter("speed_cap_topic", "/speed_cap")
+        self.declare_parameter("controller_mode", "black") # "gray" or "black"
+        self.declare_parameter("black_controller_enable_button_index", 4)
+        self.declare_parameter("gray_controller_enable_button_index", 6)
+
+        self.index = 4
+
+        if self.get_parameter("controller_mode").value == "black":
+            self.index = self.get_parameter("black_controller_enable_button_index").value
+        else:
+            self.index = self.get_parameter("gray_controller_enable_button_index").value
 
         self.joy_topic = self.get_parameter("joy_topic").value
         self.selector_topic = self.get_parameter("selector_topic").value
         self.drive_topic = self.get_parameter("drive_topic").value
-        self.enable_button_index = int(self.get_parameter("enable_button_index").value)
+        self.enable_button_index = int(self.index)
         self.manual_auto_swap_topic = self.get_parameter("manual_auto_swap_topic").value
         self.default_controller = self.get_parameter("default_controller").value
         self.trailing_topic = self.get_parameter("trailing_topic").value

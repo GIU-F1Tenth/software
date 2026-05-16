@@ -8,4 +8,8 @@ control_gateway:
     trailing_topic: "/trailing"
     default_controller: "pure_pursuit"
 
-    enable_button_index: 4
+    controller_mode: "gray" # "gray" or "black"
+
+    black_controller_enable_button_index: 6
+    gray_controller_enable_button_index: 4
+

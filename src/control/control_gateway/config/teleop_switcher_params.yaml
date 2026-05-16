@@ -4,4 +4,7 @@ teleop_switcher:
     selector_topic: "/control_gateway/switch_manual_auto"
     debounce_time: 0.5
 
-    manual_button_index: 7
+    controller_mode: "gray" # "gray" or "black"
+
+    black_manual_button_index: 9
+    gray_manual_button_index: 7
