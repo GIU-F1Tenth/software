@@ -13,3 +13,21 @@ control_gateway:
     black_controller_enable_button_index: 6
     gray_controller_enable_button_index: 4
 
+    is_use_keyboard_control: false
+    keyboard_event_topic: "/keyboard/event"
+    deadman_key: "p"
+    toggle_key: "m"
+    forward_key: "w"
+    reverse_key: "s"
+    left_key: "a"
+    right_key: "d"
+    stop_key: "space"
+    keyboard_publish_rate_hz: 30.0
+    keyboard_toggle_debounce: 0.3
+    keyboard_max_speed: 2.0
+    keyboard_max_reverse_speed: 1.0
+    keyboard_max_steering: 0.34
+    keyboard_speed_step: 0.15
+    keyboard_steering_step: 0.04
+    keyboard_speed_decay: 0.92
+    keyboard_steering_return: 0.7

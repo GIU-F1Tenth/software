@@ -31,6 +31,7 @@ setup(
         "console_scripts": [
             "control_gateway = control_gateway.control_gateway:main",
             "teleop_switcher = control_gateway.teleop_switcher:main",
+            "keyboard_switcher = control_gateway.keyboard_switcher:main",
         ],
     },
 )
