@@ -2,6 +2,7 @@
 
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 from visualization_msgs.msg import Marker, MarkerArray
 from geometry_msgs.msg import Point
 from nav_msgs.msg import Odometry
@@ -48,7 +49,7 @@ class OppTrackerNode(Node):
             Marker, self.opponent_centers_topic, 10
         )
         self.odom_sub = self.create_subscription(
-            Odometry, self.odom_topic, self.odom_callback, 10
+            Odometry, self.odom_topic, self.odom_callback, qos_profile_sensor_data
         )
         
         self.current_ego_position = (0.0, 0.0)
