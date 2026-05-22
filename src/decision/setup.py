@@ -30,6 +30,7 @@ setup(
     entry_points={
         "console_scripts": [
             "fsm_node=decision.fsm.fsm_node:main",
+            "opp_tracker_node=decision.opp_tracker.opp_tracker_node:main",
         ],
     },
 )
