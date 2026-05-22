@@ -3,9 +3,13 @@
 <package format="3">
   <name>opp_tracker</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Opponent tracking from object detection bounding boxes for F1TENTH autonomous racing</description>
   <maintainer email="fam@awadlouis.com">Fam Shihata</maintainer>
   <license>MIT</license>
+
+  <depend>rclpy</depend>
+  <depend>geometry_msgs</depend>
+  <depend>visualization_msgs</depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
