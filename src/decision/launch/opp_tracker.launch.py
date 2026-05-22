@@ -8,13 +8,13 @@ def generate_launch_description():
     ld = LaunchDescription()
 
     config_path = os.path.join(
-        get_package_share_directory("opp_tracker"),
+        get_package_share_directory("decision"),
         "config",
         "opp_tracker_params.yaml"
     )
 
     opp_tracker_node = Node(
-        package='opp_tracker',
+        package='decision',
         executable='opp_tracker_node',
         name='opp_tracker',
         parameters=[config_path],
