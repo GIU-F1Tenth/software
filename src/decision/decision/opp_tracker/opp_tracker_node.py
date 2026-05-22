@@ -4,6 +4,7 @@ import rclpy
 from rclpy.node import Node
 from visualization_msgs.msg import Marker, MarkerArray
 from geometry_msgs.msg import Point
+from nav_msgs.msg import Odometry
 
 from decision.opp_tracker.opponent_tracker import (
     OpponentObservation,
@@ -24,6 +25,7 @@ class OppTrackerNode(Node):
                 ("max_history_size", 500),
                 ("marker_namespace", "opponent_centers"),
                 ("marker_scale", 0.12),
+                ("odom_topic", "/car_state/odom"),
             ],
         )
 
@@ -33,7 +35,8 @@ class OppTrackerNode(Node):
         ).value
         self.marker_namespace = self.get_parameter("marker_namespace").value
         self.marker_scale = self.get_parameter("marker_scale").value
-
+        self.odom_topic = self.get_parameter("odom_topic").value
+    
         self.tracker = OpponentCenterTracker(
             max_history_size=self.get_parameter("max_history_size").value
         )
@@ -44,6 +47,11 @@ class OppTrackerNode(Node):
         self.centers_pub = self.create_publisher(
             Marker, self.opponent_centers_topic, 10
         )
+        self.odom_sub = self.create_subscription(
+            Odometry, self.odom_topic, self.odom_callback, 10
+        )
+        
+        self.current_ego_position = (0.0, 0.0)
 
         self.get_logger().info("Opponent Tracker Node initialized")
 
@@ -60,8 +68,8 @@ class OppTrackerNode(Node):
 
         self.tracker.add_observation(
             OpponentObservation(
-                x=center[0],
-                y=center[1],
+                x=center[0] + self.current_ego_position[0],
+                y=center[1] + self.current_ego_position[1],
                 z=center[2],
                 stamp=self._stamp_to_seconds(header.stamp),
                 frame_id=header.frame_id,
@@ -69,6 +77,12 @@ class OppTrackerNode(Node):
         )
 
         self.publish_centers()
+        
+    def odom_callback(self, msg: Odometry):
+        self.current_ego_position = (
+            msg.pose.pose.position.x,
+            msg.pose.pose.position.y,
+        )
 
     @staticmethod
     def _is_bounding_box(marker):
