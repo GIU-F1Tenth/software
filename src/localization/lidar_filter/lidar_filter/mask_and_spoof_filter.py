@@ -21,7 +21,7 @@ class MaskAndSpoofFilter(Filter):
         self._cos_yaw = float(np.cos(self.origin_yaw))
         self._sin_yaw = float(np.sin(self.origin_yaw))
         self.height, self.width = self.mask.shape
-        self.should_spoof = False
+        self.spoof_method = "none"
 
     @classmethod
     def from_json(cls, path):
@@ -50,6 +50,46 @@ class MaskAndSpoofFilter(Filter):
         keep[in_bounds] = self.mask[rows[in_bounds], cols[in_bounds]]
         return keep
 
+    def _spoof_cubic_spline(self, ranges, angles, valid, spoof_targets, out):
+        if valid.sum() < 4:
+            return
+        spline = CubicSpline(
+            angles[valid][10::3], ranges[valid][10::3], bc_type="natural", extrapolate=False
+        )
+        spoofed = spline(angles[spoof_targets])
+        idx = np.where(spoof_targets)[0]
+        ok = np.isfinite(spoofed)
+        out[idx[ok]] = spoofed[ok]
+
+    def _spoof_straight_line(self, ranges, angles, valid, spoof_targets, out):
+        spoof_idx = np.where(spoof_targets)[0]
+        valid_idx = np.where(valid)[0]
+        if spoof_idx.size == 0 or valid_idx.size == 0:
+            return
+        groups = np.split(spoof_idx, np.where(np.diff(spoof_idx) != 1)[0] + 1)
+        for group in groups:
+            left = valid_idx[valid_idx < group[0]]
+            right = valid_idx[valid_idx > group[-1]]
+            if left.size == 0 or right.size == 0:
+                continue
+            i_l, i_r = left[-1], right[0]
+            r1, a1 = ranges[i_l], angles[i_l]
+            r2, a2 = ranges[i_r], angles[i_r]
+            x1, y1 = r1 * np.cos(a1), r1 * np.sin(a1)
+            x2, y2 = r2 * np.cos(a2), r2 * np.sin(a2)
+            a = angles[group]
+            denom = np.cos(a) * (y2 - y1) - np.sin(a) * (x2 - x1)
+            with np.errstate(divide="ignore", invalid="ignore"):
+                t = (x1 * y2 - x2 * y1) / denom
+            ok = np.isfinite(t) & (t > 0)
+            out[group[ok]] = t[ok]
+
+    def _spoof(self, ranges, angles, valid, spoof_targets, out):
+        method = self._SPOOF_METHODS.get(self.spoof_method)
+        if method is None:
+            return
+        method(self, ranges, angles, valid, spoof_targets, out)
+
     def filter_scan(self, ranges, angles, pose_x, pose_y, pose_yaw) -> np.ndarray:
         ranges = np.asarray(ranges, dtype=np.float64)
         angles = np.asarray(angles, dtype=np.float64)
@@ -61,11 +101,11 @@ class MaskAndSpoofFilter(Filter):
         valid = finite & keep
         spoof_targets = finite & ~keep
         out[~valid] = np.inf
-        if valid.sum() < 4 or not spoof_targets.any() or not self.should_spoof:
-            return out
-        spline = CubicSpline(angles[valid][10::3], ranges[valid][10::3], bc_type="natural", extrapolate=False)
-        spoofed = spline(angles[spoof_targets])
-        idx = np.where(spoof_targets)[0]
-        ok = np.isfinite(spoofed)
-        out[idx[ok]] = spoofed[ok]
+        if spoof_targets.any():
+            self._spoof(ranges, angles, valid, spoof_targets, out)
         return out
+
+    _SPOOF_METHODS = {
+        "cubic_spline": _spoof_cubic_spline,
+        "straight_line": _spoof_straight_line,
+    }

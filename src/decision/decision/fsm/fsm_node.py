@@ -8,6 +8,7 @@ from rclpy.qos import qos_profile_sensor_data
 from rclpy.node import Node
 from std_msgs.msg import String, Bool
 from visualization_msgs.msg import MarkerArray
+from nav_msgs.msg import Odometry
 
 import time
 import csv
@@ -82,6 +83,9 @@ class SimpleFSM(FSM):
         if next_type_traits not in self._state_by_state_traits:
             raise ValueError(f"state {next_type_traits!r} is not present in FSM pool")
 
+        if not is_overtake_region:
+            self._current_state = self._state_by_state_traits[StateTraits.PURE_PURSUIT | StateTraits.TRAILING]
+            return elapsed_time
         if self.__should_switch_state(next_type_traits, elapsed_time):
             self.__state_time = time.perf_counter()
             self._current_state = self._state_by_state_traits[next_type_traits]
@@ -130,7 +134,7 @@ class FSMNode(Node):
             MarkerArray, objects_topic, self.objects_callback, 10
         )
         self.odom_sub = self.create_subscription(
-            MarkerArray, odom_topic, self.odom_callback, qos_profile_sensor_data
+            Odometry, odom_topic, self.odom_callback, qos_profile_sensor_data
         )
         self.current_position = (0.0, 0.0)
 
