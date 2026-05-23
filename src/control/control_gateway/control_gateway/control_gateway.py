@@ -374,7 +374,7 @@ class ControlGateway(Node):
         if controller_name != self.selected_controller:
             return
 
-        if self.should_trail and self.capped_speed > 0:
+        if self.should_trail and self.capped_speed >= 0:
             msg.drive.speed = min(msg.drive.speed, self.capped_speed)
 
         self.drive_pub.publish(msg)
