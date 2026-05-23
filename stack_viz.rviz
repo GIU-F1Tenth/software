@@ -6,11 +6,9 @@ Panels:
       Expanded:
         - /Global Options1
         - /Filtered Scan1/Topic1
-        - /Odometry1
         - /Odometry1/Topic1
         - /Odometry1/Covariance1
-        - /Control1
-        - /Control1/Kayn1
+        - /Control1/DWA1
       Splitter Ratio: 0.41470587253570557
     Tree Height: 719
   - Class: rviz_common/Selection
@@ -76,8 +74,8 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 1.3487248420715332
-        Min Value: -6.080977439880371
+        Max Value: 18.655406951904297
+        Min Value: 4.242281436920166
         Value: true
       Axis: Y
       Channel Name: intensity
@@ -176,7 +174,7 @@ Visualization Manager:
                 Reliability Policy: Reliable
                 Value: /lookahead_marker
               Value: true
-          Enabled: true
+          Enabled: false
           Name: Pure Pursuit
         - Class: rviz_common/Group
           Displays:
@@ -204,7 +202,7 @@ Visualization Manager:
                 Reliability Policy: Reliable
                 Value: /horizon_mapper/velocity_path
               Value: true
-          Enabled: true
+          Enabled: false
           Name: Kayn
         - Class: rviz_common/Group
           Displays:
@@ -244,6 +242,48 @@ Visualization Manager:
               Value: true
           Enabled: false
           Name: Gap Following
+        - Class: rviz_common/Group
+          Displays:
+            - Class: rviz_default_plugins/MarkerArray
+              Enabled: true
+              Name: Horizons
+              Namespaces:
+                dwa_horizons: true
+              Topic:
+                Depth: 5
+                Durability Policy: Volatile
+                History Policy: Keep Last
+                Reliability Policy: Reliable
+                Value: /dwa_horizons
+              Value: true
+            - Class: rviz_default_plugins/Marker
+              Enabled: true
+              Name: Circle
+              Namespaces:
+                dynamic_lookahead: true
+              Topic:
+                Depth: 5
+                Durability Policy: Volatile
+                Filter size: 10
+                History Policy: Keep Last
+                Reliability Policy: Reliable
+                Value: /dynamic_lookahead_circle
+              Value: true
+            - Class: rviz_default_plugins/Marker
+              Enabled: true
+              Name: Goal
+              Namespaces:
+                dynamic_lookahead: true
+              Topic:
+                Depth: 5
+                Durability Policy: Volatile
+                Filter size: 10
+                History Policy: Keep Last
+                Reliability Policy: Reliable
+                Value: /lookahead_goal
+              Value: true
+          Enabled: true
+          Name: DWA
       Enabled: true
       Name: Control
     - Class: rviz_common/Group
@@ -361,16 +401,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 17.259519577026367
+      Distance: 18.00932502746582
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 2.3831443786621094
-        Y: 2.9464755058288574
-        Z: 2.7302138805389404
+        X: -1.0410325527191162
+        Y: 11.5809965133667
+        Z: 2.7389910221099854
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
