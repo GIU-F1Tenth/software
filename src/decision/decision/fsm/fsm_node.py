@@ -183,13 +183,18 @@ class FSMNode(Node):
                     closest_object = marker
                     closest_distance = dist_current
 
+        _, distance_to_point = self.__get_closest_point(
+            self.path,
+            closest_object.pose.position.x,
+            closest_object.pose.position.y,
+        )
+        self.get_logger().info(
+            f"Closest object distance to path: {distance_to_point:.2f}",
+            throttle_duration_sec=1.0,
+        )
         self.fsm.run_once(
             objects=msg.markers[1:],
-            opponent_distance_to_path=self.__get_closest_point(
-                self.path,
-                closest_object.pose.position.x,
-                closest_object.pose.position.y,
-            )[1],
+            opponent_distance_to_path=distance_to_point,
             is_overtake_region=self.__get_current_overtaking_allowed_point(),
         )
         state_str = self.fsm.current_state.state_type.name
