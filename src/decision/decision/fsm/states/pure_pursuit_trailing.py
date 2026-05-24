@@ -1,6 +1,7 @@
 from typing import Collection, Any, Optional
 
 from decision.fsm.state import State, StateType, StateTraits
+from decision.fsm.states.common import is_safe_to_overtake
 
 
 class PurePursuitTrailingState(State):
@@ -28,9 +29,8 @@ class PurePursuitTrailingState(State):
         opponent_distance_to_path: float = float("inf"),
     ) -> StateTraits:
         if objects is not None and len(objects) > 0:
-            if is_overtake_region and self.__is_safe_to_overtake():
+            if is_overtake_region and is_safe_to_overtake():
                 return StateTraits.GAP_FOLLOWING
+            if opponent_distance_to_path >= 0.5:
+                return StateTraits.PURE_PURSUIT
         return self._state_type.state_traits
-
-    def __is_safe_to_overtake(self):
-        return True
