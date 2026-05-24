@@ -9,6 +9,7 @@ from rclpy.node import Node
 from std_msgs.msg import String, Bool
 from visualization_msgs.msg import MarkerArray
 from nav_msgs.msg import Odometry
+from nav_msgs.msg import Path
 
 import time
 import csv
@@ -65,7 +66,12 @@ class SimpleFSM(FSM):
         """Return the active state instance."""
         return self._current_state
 
-    def run_once(self, objects: Optional[Collection], is_overtake_region: bool = False):
+    def run_once(
+        self,
+        objects: Optional[Collection],
+        is_overtake_region: bool = False,
+        opponent_distance_to_path: Optional[float] = None,
+    ) -> None:
         """Perform one execution and transition step.
 
         - Calls the current state's `execute`.
@@ -79,7 +85,11 @@ class SimpleFSM(FSM):
         """
         elapsed_time = time.perf_counter() - self.__state_time
         next_type_traits = self._current_state.transition(
-            objects=objects, is_overtake_region=is_overtake_region
+            objects=objects,
+            is_overtake_region=is_overtake_region,
+            opponent_distance_to_path=opponent_distance_to_path
+            if opponent_distance_to_path is not None
+            else float("inf"),
         )
 
         if not isinstance(next_type_traits, StateTraits):
@@ -91,12 +101,11 @@ class SimpleFSM(FSM):
             self._current_state = self._state_by_state_traits[
                 StateTraits.PURE_PURSUIT | StateTraits.TRAILING
             ]
-            return elapsed_time
+            return
         if self.__should_switch_state(next_type_traits, elapsed_time):
             self.__state_time = time.perf_counter()
             self._current_state = self._state_by_state_traits[next_type_traits]
-
-        return elapsed_time
+        return
 
     def __should_switch_state(
         self, next_type: StateTraits, elapsed_time: float
@@ -119,6 +128,7 @@ class FSMNode(Node):
         self.declare_parameter("output_topic", "fsm_state")
         self.declare_parameter("trailing_topic", "trailing")
         self.declare_parameter("odom_topic", "/car_state/odom")
+        self.declare_parameter("global_path_topic", "global_path")
         self.declare_parameter("overtaking_allowed_file_path", "")
 
         states_list = self.get_parameter("states").value
@@ -130,9 +140,11 @@ class FSMNode(Node):
             "overtaking_allowed_file_path"
         ).value
         odom_topic = self.get_parameter("odom_topic").value
+        global_path_topic = self.get_parameter("global_path_topic").value
 
         self.fsm = SimpleFSM(states_list, initial_state)
         self.overtaking_allowed = []
+        self.path = []
         self.__load_overtaking_data(overtaking_allowed_file_path)
 
         self.control_publisher = self.create_publisher(String, control_output_topic, 10)
@@ -144,11 +156,40 @@ class FSMNode(Node):
         self.odom_sub = self.create_subscription(
             Odometry, odom_topic, self.odom_callback, qos_profile_sensor_data
         )
+        self.global_path_sub = self.create_subscription(
+            Path, global_path_topic, self.global_path_callback, 10
+        )
         self.current_position = (0.0, 0.0)
 
+    def global_path_callback(self, msg):
+        self.path = [(pose.pose.position.x, pose.pose.position.y) for pose in msg.poses]
+        self.get_logger().info(
+            f"Received global path with {len(self.path)} points",
+            throttle_duration_sec=5.0,
+        )
+
     def objects_callback(self, msg):
+        closest_object = None
+        closest_distance = float("inf")
+
+        for marker in msg.markers[1:]:
+            if closest_object is None:
+                closest_object = marker
+            else:
+                dist_current = (
+                    marker.pose.position.x - self.current_position[0]
+                ) ** 2 + (marker.pose.position.y - self.current_position[1]) ** 2
+                if dist_current < closest_distance:
+                    closest_object = marker
+                    closest_distance = dist_current
+
         self.fsm.run_once(
             objects=msg.markers[1:],
+            opponent_distance_to_path=self.__get_closest_point(
+                self.path,
+                closest_object.pose.position.x,
+                closest_object.pose.position.y,
+            )[1],
             is_overtake_region=self.__get_current_overtaking_allowed_point(),
         )
         state_str = self.fsm.current_state.state_type.name
@@ -219,11 +260,22 @@ class FSMNode(Node):
             return False
 
         current_x, current_y = self.current_position
-        closest_point = min(
-            self.overtaking_allowed,
-            key=lambda point: (point[0] - current_x) ** 2 + (point[1] - current_y) ** 2,
+        closest_point, _ = self.__get_closest_point(
+            self.overtaking_allowed, current_x, current_y
         )
         return closest_point[2]
+
+    def __get_closest_point(self, points, x, y):
+        if not points:
+            return None, float("inf")
+
+        closest_point = min(
+            points,
+            key=lambda point: (point[0] - x) ** 2 + (point[1] - y) ** 2,
+        )
+        return closest_point, (
+            (closest_point[0] - x) ** 2 + (closest_point[1] - y) ** 2
+        ) ** 0.5
 
 
 def main(args=None):
