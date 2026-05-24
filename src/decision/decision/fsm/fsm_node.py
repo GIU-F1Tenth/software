@@ -2,7 +2,7 @@ from collections.abc import Collection
 from importlib import import_module
 from typing import Dict, Optional
 
-from decision.fsm.state import State, StateType, StateTraits
+from decision.fsm.state import State, StateTraits
 import rclpy
 from rclpy.qos import qos_profile_sensor_data
 from rclpy.node import Node
@@ -46,7 +46,7 @@ class SimpleFSM(FSM):
                 module = import_module(f"decision.fsm.states.{module_name}")
                 cls = getattr(module, class_name)
                 instance = cls()
-                
+
                 if st == initial:
                     initial_state = instance
             except Exception as exc:
@@ -56,7 +56,9 @@ class SimpleFSM(FSM):
                 raise TypeError(f"state {st!r} instance is not a subclass of State")
             self._state_by_state_traits[instance.state_type.state_traits] = instance
 
-        self._current_state: State = self._state_by_state_traits[initial_state.state_type.state_traits]
+        self._current_state: State = self._state_by_state_traits[
+            initial_state.state_type.state_traits
+        ]
 
     @property
     def current_state(self) -> State:
@@ -76,7 +78,9 @@ class SimpleFSM(FSM):
             ValueError: if the returned StateType is not part of the pool.
         """
         elapsed_time = time.perf_counter() - self.__state_time
-        next_type_traits = self._current_state.transition(objects=objects, is_overtake_region=is_overtake_region)
+        next_type_traits = self._current_state.transition(
+            objects=objects, is_overtake_region=is_overtake_region
+        )
 
         if not isinstance(next_type_traits, StateTraits):
             raise ValueError("transition must return a StateType")
@@ -84,7 +88,9 @@ class SimpleFSM(FSM):
             raise ValueError(f"state {next_type_traits!r} is not present in FSM pool")
 
         if not is_overtake_region:
-            self._current_state = self._state_by_state_traits[StateTraits.PURE_PURSUIT | StateTraits.TRAILING]
+            self._current_state = self._state_by_state_traits[
+                StateTraits.PURE_PURSUIT | StateTraits.TRAILING
+            ]
             return elapsed_time
         if self.__should_switch_state(next_type_traits, elapsed_time):
             self.__state_time = time.perf_counter()
@@ -120,7 +126,9 @@ class FSMNode(Node):
         objects_topic = self.get_parameter("objects_topic").value
         control_output_topic = self.get_parameter("output_topic").value
         trailing_topic = self.get_parameter("trailing_topic").value
-        overtaking_allowed_file_path = self.get_parameter("overtaking_allowed_file_path").value
+        overtaking_allowed_file_path = self.get_parameter(
+            "overtaking_allowed_file_path"
+        ).value
         odom_topic = self.get_parameter("odom_topic").value
 
         self.fsm = SimpleFSM(states_list, initial_state)
@@ -139,7 +147,10 @@ class FSMNode(Node):
         self.current_position = (0.0, 0.0)
 
     def objects_callback(self, msg):
-        self.fsm.run_once(objects=msg.markers[1:], is_overtake_region=self.__get_current_overtaking_allowed_point())
+        self.fsm.run_once(
+            objects=msg.markers[1:],
+            is_overtake_region=self.__get_current_overtaking_allowed_point(),
+        )
         state_str = self.fsm.current_state.state_type.name
         self.get_logger().info(
             f"Current FSM state: {state_str}", throttle_duration_sec=1.0
@@ -147,30 +158,32 @@ class FSMNode(Node):
         control_output_msg = String()
         control_output_msg.data = self.__get_control_topic_from_current_state()
         self.control_publisher.publish(control_output_msg)
-        
+
         trail_output_msg = Bool()
-        trail_output_msg.data = StateTraits.TRAILING in self.fsm.current_state.state_type.state_traits
+        trail_output_msg.data = (
+            StateTraits.TRAILING in self.fsm.current_state.state_type.state_traits
+        )
         self.trailing_topic.publish(trail_output_msg)
-        
+
     def odom_callback(self, msg):
-        self.current_position = (msg.pose.pose.position.x, msg.pose.pose.position.y)    
-    
+        self.current_position = (msg.pose.pose.position.x, msg.pose.pose.position.y)
+
     def __get_control_topic_from_current_state(self) -> str:
         current_state_traits = self.fsm.current_state.state_type.state_traits
         if StateTraits.PURE_PURSUIT in current_state_traits:
             return "pure_pursuit"
-        if StateTraits.GAP_FOLLOWING in current_state_traits: 
+        if StateTraits.GAP_FOLLOWING in current_state_traits:
             return "gap_following"
-        if StateTraits.LQR in current_state_traits: 
+        if StateTraits.LQR in current_state_traits:
             return "lqr"
         if StateTraits.DWA in current_state_traits:
             return "dwa"
-        if StateTraits.KAYN in current_state_traits: 
+        if StateTraits.KAYN in current_state_traits:
             return "kayn"
         if StateTraits.MPC_KARIM in current_state_traits:
             return "mpc_karim"
         return NotImplemented
-        
+
     def __load_overtaking_data(self, overtaking_allowed_file_path):
         if not overtaking_allowed_file_path:
             self.get_logger().warn("no overtaking_allowed_file_path provided")
@@ -201,17 +214,17 @@ class FSMNode(Node):
             f"loaded {len(self.overtaking_allowed)} overtaking path points"
         )
 
-    def __get_current_overtaking_allowed_point(self): 
+    def __get_current_overtaking_allowed_point(self):
         if not self.overtaking_allowed:
             return False
 
         current_x, current_y = self.current_position
         closest_point = min(
-            self.overtaking_allowed, 
-            key=lambda point: (point[0] - current_x) ** 2 + (point[1] - current_y) ** 2
+            self.overtaking_allowed,
+            key=lambda point: (point[0] - current_x) ** 2 + (point[1] - current_y) ** 2,
         )
         return closest_point[2]
-        
+
 
 def main(args=None):
     rclpy.init(args=args)
