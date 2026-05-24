@@ -12,7 +12,7 @@ class StateTraits(IntFlag):
     LQR = auto()
     KAYN = auto()
     MPC_KARIM = auto()
-    
+
     TRAILING = auto()
     STOP = auto()
 
@@ -53,7 +53,12 @@ class State(ABC):
         return self._minimum_time_in_state
 
     @abstractmethod
-    def transition(self, objects: Collection | None = None, is_overtake_region: bool = False) -> StateTraits:
+    def transition(
+        self,
+        objects: Collection | None = None,
+        is_overtake_region: bool = False,
+        opponent_distance_to_path: float = float("inf"),
+    ) -> StateTraits:
         """
         Determine the next state to transition to.
 

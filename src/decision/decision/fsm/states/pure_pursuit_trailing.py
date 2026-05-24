@@ -14,18 +14,23 @@ class PurePursuitTrailingState(State):
         name="pure_pursuit_trailing",
         state_traits=StateTraits.PURE_PURSUIT | StateTraits.TRAILING,
     )
-    
+
     _minimum_time_in_state = 5.0
 
     @property
     def state_type(self) -> StateType:
         return self._state_type
 
-    def transition(self, objects: Optional[Collection[Any]] = None, is_overtake_region: bool = False) -> StateTraits:
+    def transition(
+        self,
+        objects: Optional[Collection[Any]] = None,
+        is_overtake_region: bool = False,
+        opponent_distance_to_path: float = float("inf"),
+    ) -> StateTraits:
         if objects is not None and len(objects) > 0:
             if is_overtake_region and self.__is_safe_to_overtake():
-                return StateTraits.GAP_FOLLOWING    
+                return StateTraits.GAP_FOLLOWING
         return self._state_type.state_traits
-    
+
     def __is_safe_to_overtake(self):
         return True

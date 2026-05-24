@@ -10,13 +10,16 @@ class MpcKarimOnlyState(State):
     `StateType.REACTIVE`. Otherwise remain in `StateType.FP`.
     """
 
-    _state_type = StateType(
-        name="mpc_karim_only", state_traits=StateTraits.MPC_KARIM
-    )
+    _state_type = StateType(name="mpc_karim_only", state_traits=StateTraits.MPC_KARIM)
 
     @property
     def state_type(self) -> StateType:
         return self._state_type
 
-    def transition(self, objects: Optional[Collection[Any]] = None, is_overtake_region: bool = False) -> StateTraits:
+    def transition(
+        self,
+        objects: Optional[Collection[Any]] = None,
+        is_overtake_region: bool = False,
+        opponent_distance_to_path: float = float("inf"),
+    ) -> StateTraits:
         return self._state_type.state_traits
