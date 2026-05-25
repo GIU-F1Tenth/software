@@ -31,6 +31,6 @@ class PurePursuitTrailingState(State):
         if objects is not None and len(objects) > 0:
             if is_overtake_region and is_safe_to_overtake():
                 return StateTraits.GAP_FOLLOWING
-            if opponent_distance_to_path >= 0.5:
+            if opponent_distance_to_path >= 0.4:
                 return StateTraits.PURE_PURSUIT
         return self._state_type.state_traits

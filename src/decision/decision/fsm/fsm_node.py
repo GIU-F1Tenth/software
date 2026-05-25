@@ -99,7 +99,7 @@ class SimpleFSM(FSM):
 
         if not is_overtake_region:
             self._current_state = self._state_by_state_traits[
-                StateTraits.PURE_PURSUIT | StateTraits.TRAILING
+                StateTraits.PURE_PURSUIT
             ]
             return
         if self.__should_switch_state(next_type_traits, elapsed_time):
@@ -187,7 +187,7 @@ class FSMNode(Node):
             self.path,
             closest_object.pose.position.x,
             closest_object.pose.position.y,
-        )
+        ) if closest_object is not None else (None, float("inf"))
         self.get_logger().info(
             f"Closest object distance to path: {distance_to_point:.2f}",
             throttle_duration_sec=1.0,
@@ -272,6 +272,7 @@ class FSMNode(Node):
 
     def __get_closest_point(self, points, x, y):
         if not points:
+            self.get_logger().warn("no points provided to find closest point")
             return None, float("inf")
 
         closest_point = min(
