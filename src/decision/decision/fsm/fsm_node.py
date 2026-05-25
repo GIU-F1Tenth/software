@@ -97,9 +97,9 @@ class SimpleFSM(FSM):
         if next_type_traits not in self._state_by_state_traits:
             raise ValueError(f"state {next_type_traits!r} is not present in FSM pool")
 
-        if not is_overtake_region:
+        if not is_overtake_region and StateTraits.PURE_PURSUIT not in self._current_state.state_type.state_traits:
             self._current_state = self._state_by_state_traits[
-                StateTraits.PURE_PURSUIT
+                StateTraits.PURE_PURSUIT | StateTraits.TRAILING
             ]
             return
         if self.__should_switch_state(next_type_traits, elapsed_time):
