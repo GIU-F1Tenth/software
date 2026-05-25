@@ -16,7 +16,7 @@ class PurePursuitTrailingState(State):
         state_traits=StateTraits.PURE_PURSUIT | StateTraits.TRAILING,
     )
 
-    _minimum_time_in_state = 5.0
+    _minimum_time_in_state = 1.0
 
     @property
     def state_type(self) -> StateType:
@@ -33,4 +33,6 @@ class PurePursuitTrailingState(State):
                 return StateTraits.GAP_FOLLOWING
             if opponent_distance_to_path >= 0.4:
                 return StateTraits.PURE_PURSUIT
-        return self._state_type.state_traits
+            else: 
+                return self._state_type.state_traits
+        return StateTraits.PURE_PURSUIT
