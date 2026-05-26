@@ -6,9 +6,15 @@ Panels:
       Expanded:
         - /Global Options1
         - /Filtered Scan1/Topic1
+        - /Odometry1
         - /Odometry1/Topic1
         - /Odometry1/Covariance1
+        - /Control1/Pure Pursuit1
         - /Control1/DWA1
+        - /Perception1
+        - /Perception1/Obj Detection1
+        - /Planning1
+        - /Planning1/Overtaking1
       Splitter Ratio: 0.41470587253570557
     Tree Height: 719
   - Class: rviz_common/Selection
@@ -74,8 +80,8 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 18.655406951904297
-        Min Value: 4.242281436920166
+        Max Value: 15.632164001464844
+        Min Value: 7.537045478820801
         Value: true
       Axis: Y
       Channel Name: intensity
@@ -152,7 +158,7 @@ Visualization Manager:
               Enabled: true
               Name: Circle
               Namespaces:
-                {}
+                lookahead: true
               Topic:
                 Depth: 5
                 Durability Policy: Volatile
@@ -165,7 +171,7 @@ Visualization Manager:
               Enabled: true
               Name: Marker
               Namespaces:
-                {}
+                lookahead: true
               Topic:
                 Depth: 5
                 Durability Policy: Volatile
@@ -174,7 +180,7 @@ Visualization Manager:
                 Reliability Policy: Reliable
                 Value: /lookahead_marker
               Value: true
-          Enabled: false
+          Enabled: true
           Name: Pure Pursuit
         - Class: rviz_common/Group
           Displays:
@@ -248,7 +254,7 @@ Visualization Manager:
               Enabled: true
               Name: Horizons
               Namespaces:
-                dwa_horizons: true
+                {}
               Topic:
                 Depth: 5
                 Durability Policy: Volatile
@@ -260,7 +266,7 @@ Visualization Manager:
               Enabled: true
               Name: Circle
               Namespaces:
-                dynamic_lookahead: true
+                {}
               Topic:
                 Depth: 5
                 Durability Policy: Volatile
@@ -273,7 +279,7 @@ Visualization Manager:
               Enabled: true
               Name: Goal
               Namespaces:
-                dynamic_lookahead: true
+                {}
               Topic:
                 Depth: 5
                 Durability Policy: Volatile
@@ -282,7 +288,7 @@ Visualization Manager:
                 Reliability Policy: Reliable
                 Value: /lookahead_goal
               Value: true
-          Enabled: true
+          Enabled: false
           Name: DWA
       Enabled: true
       Name: Control
@@ -301,6 +307,31 @@ Visualization Manager:
                 History Policy: Keep Last
                 Reliability Policy: Reliable
                 Value: /object_bboxes
+              Value: true
+            - Class: rviz_default_plugins/MarkerArray
+              Enabled: true
+              Name: Velocities
+              Namespaces:
+                velocities: true
+                velocity_text: true
+              Topic:
+                Depth: 5
+                Durability Policy: Volatile
+                History Policy: Keep Last
+                Reliability Policy: Reliable
+                Value: /object_velocities
+              Value: true
+            - Class: rviz_default_plugins/MarkerArray
+              Enabled: true
+              Name: Centers
+              Namespaces:
+                object_centers: true
+              Topic:
+                Depth: 5
+                Durability Policy: Volatile
+                History Policy: Keep Last
+                Reliability Policy: Reliable
+                Value: /object_centers
               Value: true
           Enabled: true
           Name: Obj Detection
@@ -336,6 +367,50 @@ Visualization Manager:
             Reliability Policy: Reliable
             Value: /pp_path
           Value: true
+        - Class: rviz_common/Group
+          Displays:
+            - Class: rviz_default_plugins/MarkerArray
+              Enabled: true
+              Name: Candidates
+              Namespaces:
+                candidates: true
+              Topic:
+                Depth: 5
+                Durability Policy: Volatile
+                History Policy: Keep Last
+                Reliability Policy: Reliable
+                Value: /overtaking_spline/candidates
+              Value: true
+            - Alpha: 1
+              Buffer Length: 1
+              Class: rviz_default_plugins/Path
+              Color: 25; 255; 0
+              Enabled: true
+              Head Diameter: 0.30000001192092896
+              Head Length: 0.20000000298023224
+              Length: 0.30000001192092896
+              Line Style: Lines
+              Line Width: 0.029999999329447746
+              Name: Final
+              Offset:
+                X: 0
+                Y: 0
+                Z: 0
+              Pose Color: 255; 85; 255
+              Pose Style: None
+              Radius: 0.029999999329447746
+              Shaft Diameter: 0.10000000149011612
+              Shaft Length: 0.10000000149011612
+              Topic:
+                Depth: 5
+                Durability Policy: Volatile
+                Filter size: 10
+                History Policy: Keep Last
+                Reliability Policy: Reliable
+                Value: /overtaking_spline/path
+              Value: true
+          Enabled: true
+          Name: Overtaking
       Enabled: true
       Name: Planning
     - Class: rviz_common/Group
@@ -401,16 +476,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 18.00932502746582
+      Distance: 12.295254707336426
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -1.0410325527191162
-        Y: 11.5809965133667
-        Z: 2.7389910221099854
+        X: -2.7806122303009033
+        Y: 9.524626731872559
+        Z: 2.7370142936706543
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
