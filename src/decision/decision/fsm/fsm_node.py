@@ -10,6 +10,7 @@ from std_msgs.msg import String, Bool
 from visualization_msgs.msg import MarkerArray
 from nav_msgs.msg import Odometry
 from nav_msgs.msg import Path
+from geometry_msgs.msg import PoseStamped
 
 import time
 import csv
@@ -176,10 +177,10 @@ class FSMNode(Node):
         self.current_position = (0.0, 0.0)
         
     def overtaking_path_callback(self, msg):
-        self.overtaking_path = [(pose.pose.position.x, pose.pose.position.y) for pose in msg.poses]
+        self.overtaking_path = [(pose.pose.position.x, pose.pose.position.y, pose.pose.orientation.w) for pose in msg.poses]
 
     def global_path_callback(self, msg):
-        self.global_path = [(pose.pose.position.x, pose.pose.position.y) for pose in msg.poses]
+        self.global_path = [(pose.pose.position.x, pose.pose.position.y, pose.pose.orientation.w) for pose in msg.poses]
         self.get_logger().info(
             f"Received global path with {len(self.global_path)} points",
             throttle_duration_sec=5.0,
@@ -224,11 +225,11 @@ class FSMNode(Node):
         
         if StateTraits.OVERTAKING in self.fsm.current_state.state_type.state_traits:
             if self.final_path != self.overtaking_path:
-                self.final_path_pub.publish(self.overtaking_path)
+                self.final_path_pub.publish(self._create_path_for_publishing(self.overtaking_path))
                 self.final_path = self.overtaking_path
         else: 
             if self.final_path != self.global_path:
-                self.final_path_pub.publish(self.global_path)
+                self.final_path_pub.publish(self._create_path_for_publishing(self.global_path))
                 self.final_path = self.global_path
             self.overtaking_path = []
         
@@ -239,6 +240,22 @@ class FSMNode(Node):
 
     def odom_callback(self, msg):
         self.current_position = (msg.pose.pose.position.x, msg.pose.pose.position.y)
+
+    def _create_path_for_publishing(self, path):
+        path_msg = Path()
+        path_msg.header.frame_id = "map"
+        path_msg.header.stamp = self.get_clock().now().to_msg()
+        
+        for x, y, w in path:
+            pose = PoseStamped()
+            pose.header.frame_id = "map"
+            pose.header.stamp = self.get_clock().now().to_msg()
+            pose.pose.position.x = x
+            pose.pose.position.y = y
+            pose.pose.orientation.w = w
+            path_msg.poses.append(pose)
+        
+        return path_msg
 
     def __get_control_topic_from_current_state(self) -> str:
         current_state_traits = self.fsm.current_state.state_type.state_traits
