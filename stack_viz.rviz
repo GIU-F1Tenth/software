@@ -6,13 +6,13 @@ Panels:
       Expanded:
         - /Global Options1
         - /Filtered Scan1/Topic1
-        - /Odometry1
         - /Odometry1/Topic1
         - /Odometry1/Covariance1
         - /Control1/Pure Pursuit1
         - /Control1/DWA1
         - /Perception1
-        - /Perception1/Obj Detection1
+        - /Perception1/Obj Detection1/Velocities1
+        - /Perception1/Obj Detection1/Centers1
         - /Planning1
         - /Planning1/Overtaking1
       Splitter Ratio: 0.41470587253570557
@@ -80,8 +80,8 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 15.632164001464844
-        Min Value: 7.537045478820801
+        Max Value: 12.986283302307129
+        Min Value: 6.2132158279418945
         Value: true
       Axis: Y
       Channel Name: intensity
@@ -343,7 +343,7 @@ Visualization Manager:
           Buffer Length: 1
           Class: rviz_default_plugins/Path
           Color: 255; 0; 0
-          Enabled: true
+          Enabled: false
           Head Diameter: 0.30000001192092896
           Head Length: 0.20000000298023224
           Length: 0.30000001192092896
@@ -366,21 +366,21 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /pp_path
-          Value: true
+          Value: false
         - Class: rviz_common/Group
           Displays:
             - Class: rviz_default_plugins/MarkerArray
-              Enabled: true
+              Enabled: false
               Name: Candidates
               Namespaces:
-                candidates: true
+                {}
               Topic:
                 Depth: 5
                 Durability Policy: Volatile
                 History Policy: Keep Last
                 Reliability Policy: Reliable
                 Value: /overtaking_spline/candidates
-              Value: true
+              Value: false
             - Alpha: 1
               Buffer Length: 1
               Class: rviz_default_plugins/Path
@@ -391,7 +391,7 @@ Visualization Manager:
               Length: 0.30000001192092896
               Line Style: Lines
               Line Width: 0.029999999329447746
-              Name: Final
+              Name: Chosen
               Offset:
                 X: 0
                 Y: 0
@@ -409,8 +409,48 @@ Visualization Manager:
                 Reliability Policy: Reliable
                 Value: /overtaking_spline/path
               Value: true
+            - Class: rviz_default_plugins/MarkerArray
+              Enabled: false
+              Name: Prediction Horizon
+              Namespaces:
+                {}
+              Topic:
+                Depth: 5
+                Durability Policy: Volatile
+                History Policy: Keep Last
+                Reliability Policy: Reliable
+                Value: /prediction_horizons
+              Value: false
           Enabled: true
           Name: Overtaking
+        - Alpha: 1
+          Buffer Length: 1
+          Class: rviz_default_plugins/Path
+          Color: 97; 53; 131
+          Enabled: true
+          Head Diameter: 0.30000001192092896
+          Head Length: 0.20000000298023224
+          Length: 0.30000001192092896
+          Line Style: Lines
+          Line Width: 0.029999999329447746
+          Name: Final
+          Offset:
+            X: 0
+            Y: 0
+            Z: 0
+          Pose Color: 255; 85; 255
+          Pose Style: None
+          Radius: 0.029999999329447746
+          Shaft Diameter: 0.10000000149011612
+          Shaft Length: 0.10000000149011612
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /pp_path
+          Value: true
       Enabled: true
       Name: Planning
     - Class: rviz_common/Group
@@ -476,16 +516,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 12.295254707336426
+      Distance: 17.800111770629883
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -2.7806122303009033
-        Y: 9.524626731872559
-        Z: 2.7370142936706543
+        X: -2.130950450897217
+        Y: 10.222116470336914
+        Z: 2.733414649963379
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
@@ -494,7 +534,7 @@ Visualization Manager:
       Pitch: 1.5697963237762451
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.756780624389648
+      Yaw: 4.24678897857666
     Saved:
       - Class: rviz_default_plugins/Orbit
         Distance: 15.129881858825684
