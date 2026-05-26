@@ -133,6 +133,7 @@ class FSMNode(Node):
         self.declare_parameter("overtaking_path_topic", "overtaking_path")
         self.declare_parameter("final_path_topic", "pp_path")
         self.declare_parameter("overtaking_allowed_file_path", "")
+        self.declare_parameter("overtaking_path_timeout", 5.0)
 
         states_list = self.get_parameter("states").value
         initial_state = self.get_parameter("initial_state").value
@@ -146,11 +147,13 @@ class FSMNode(Node):
         global_path_topic = self.get_parameter("global_path_topic").value
         overtaking_path_topic = self.get_parameter("overtaking_path_topic").value
         final_path_topic = self.get_parameter("final_path_topic").value
+        self.overtaking_path_timeout = self.get_parameter("overtaking_path_timeout").value
 
         self.fsm = SimpleFSM(states_list, initial_state)
         self.overtaking_allowed = []
         self.global_path = []
         self.overtaking_path = [] 
+        self.overtaking_path_arrival_time = time.perf_counter()
         self.final_path = self.global_path
         self.__load_overtaking_data(overtaking_allowed_file_path)
 
@@ -178,6 +181,7 @@ class FSMNode(Node):
         
     def overtaking_path_callback(self, msg):
         self.overtaking_path = [(pose.pose.position.x, pose.pose.position.y, pose.pose.orientation.w) for pose in msg.poses]
+        self.overtaking_path_arrival_time = time.perf_counter() 
 
     def global_path_callback(self, msg):
         self.global_path = [(pose.pose.position.x, pose.pose.position.y, pose.pose.orientation.w) for pose in msg.poses]
@@ -210,7 +214,7 @@ class FSMNode(Node):
             objects=msg.markers[1:],
             opponent_distance_to_path=distance_to_point,
             is_overtake_region=self.__get_current_overtaking_allowed_point(),
-            overtaking_path=self.overtaking_path
+            overtaking_path=self.overtaking_path if time.perf_counter() - self.overtaking_path_arrival_time < self.overtaking_path_timeout else None
         )
         
         control_output_msg = String()
@@ -231,7 +235,6 @@ class FSMNode(Node):
             if self.final_path != self.global_path:
                 self.final_path_pub.publish(self._create_path_for_publishing(self.global_path))
                 self.final_path = self.global_path
-            self.overtaking_path = []
         
         self.get_logger().info(
             f"Current FSM state: {self.fsm.current_state.state_type.name}",
