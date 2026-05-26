@@ -194,11 +194,6 @@ class FSMNode(Node):
             is_overtake_region=self.__get_current_overtaking_allowed_point(),
         )
         
-        self.get_logger().info(
-            f"Current FSM state: {self.fsm.current_state.state_type.name}",
-            throttle_duration_sec=1.0,
-        )
-        
         control_output_msg = String()
         control_output_msg.data = self.__get_control_topic_from_current_state()
         self.control_publisher.publish(control_output_msg)
@@ -208,6 +203,11 @@ class FSMNode(Node):
             StateTraits.TRAILING in self.fsm.current_state.state_type.state_traits
         )
         self.trailing_topic.publish(trail_output_msg)
+        
+        self.get_logger().info(
+            f"Current FSM state: {self.fsm.current_state.state_type.name}",
+            throttle_duration_sec=1.0,
+        )
 
     def odom_callback(self, msg):
         self.current_position = (msg.pose.pose.position.x, msg.pose.pose.position.y)
