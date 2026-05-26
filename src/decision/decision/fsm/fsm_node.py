@@ -71,6 +71,7 @@ class SimpleFSM(FSM):
         objects: Optional[Collection],
         is_overtake_region: bool = False,
         opponent_distance_to_path: Optional[float] = None,
+        overtaking_path: Optional[list] = None,
     ) -> None:
         """Perform one execution and transition step.
 
@@ -97,13 +98,12 @@ class SimpleFSM(FSM):
         if next_type_traits not in self._state_by_state_traits:
             raise ValueError(f"state {next_type_traits!r} is not present in FSM pool")
 
-        if not is_overtake_region and StateTraits.PURE_PURSUIT not in self._current_state.state_type.state_traits:
-            self._current_state = self._state_by_state_traits[
-                StateTraits.PURE_PURSUIT | StateTraits.TRAILING
-            ]
-            return
         if self.__should_switch_state(next_type_traits, elapsed_time):
             self.__state_time = time.perf_counter()
+            
+            if StateTraits.OVERTAKING in next_type_traits and not overtaking_path: 
+                next_type_traits |= StateTraits.TRAILING
+                next_type_traits &= ~StateTraits.OVERTAKING
             self._current_state = self._state_by_state_traits[next_type_traits]
         return
 
@@ -129,6 +129,8 @@ class FSMNode(Node):
         self.declare_parameter("trailing_topic", "trailing")
         self.declare_parameter("odom_topic", "/car_state/odom")
         self.declare_parameter("global_path_topic", "global_path")
+        self.declare_parameter("overtaking_path_topic", "overtaking_path")
+        self.declare_parameter("final_path_topic", "pp_path")
         self.declare_parameter("overtaking_allowed_file_path", "")
 
         states_list = self.get_parameter("states").value
@@ -141,10 +143,14 @@ class FSMNode(Node):
         ).value
         odom_topic = self.get_parameter("odom_topic").value
         global_path_topic = self.get_parameter("global_path_topic").value
+        overtaking_path_topic = self.get_parameter("overtaking_path_topic").value
+        final_path_topic = self.get_parameter("final_path_topic").value
 
         self.fsm = SimpleFSM(states_list, initial_state)
         self.overtaking_allowed = []
-        self.path = []
+        self.global_path = []
+        self.overtaking_path = [] 
+        self.final_path = self.global_path
         self.__load_overtaking_data(overtaking_allowed_file_path)
 
         self.control_publisher = self.create_publisher(String, control_output_topic, 10)
@@ -159,12 +165,23 @@ class FSMNode(Node):
         self.global_path_sub = self.create_subscription(
             Path, global_path_topic, self.global_path_callback, 10
         )
+        self.overtaking_path_sub = self.create_subscription(
+            Path, overtaking_path_topic, self.overtaking_path_callback, 10
+        )
+        
+        self.final_path_pub = self.create_publisher(
+            Path, final_path_topic, 10
+        )
+        
         self.current_position = (0.0, 0.0)
+        
+    def overtaking_path_callback(self, msg):
+        self.overtaking_path = [(pose.pose.position.x, pose.pose.position.y) for pose in msg.poses]
 
     def global_path_callback(self, msg):
-        self.path = [(pose.pose.position.x, pose.pose.position.y) for pose in msg.poses]
+        self.global_path = [(pose.pose.position.x, pose.pose.position.y) for pose in msg.poses]
         self.get_logger().info(
-            f"Received global path with {len(self.path)} points",
+            f"Received global path with {len(self.global_path)} points",
             throttle_duration_sec=5.0,
         )
 
@@ -184,7 +201,7 @@ class FSMNode(Node):
                     closest_distance = dist_current
 
         _, distance_to_point = self.__get_closest_point(
-            self.path,
+            self.final_path,
             closest_object.pose.position.x,
             closest_object.pose.position.y,
         ) if closest_object is not None else (None, float("inf"))
@@ -192,6 +209,7 @@ class FSMNode(Node):
             objects=msg.markers[1:],
             opponent_distance_to_path=distance_to_point,
             is_overtake_region=self.__get_current_overtaking_allowed_point(),
+            overtaking_path=self.overtaking_path
         )
         
         control_output_msg = String()
@@ -203,6 +221,16 @@ class FSMNode(Node):
             StateTraits.TRAILING in self.fsm.current_state.state_type.state_traits
         )
         self.trailing_topic.publish(trail_output_msg)
+        
+        if StateTraits.OVERTAKING in self.fsm.current_state.state_type.state_traits:
+            if self.final_path != self.overtaking_path:
+                self.final_path_pub.publish(self.overtaking_path)
+                self.final_path = self.overtaking_path
+        else: 
+            if self.final_path != self.global_path:
+                self.final_path_pub.publish(self.global_path)
+                self.final_path = self.global_path
+            self.overtaking_path = []
         
         self.get_logger().info(
             f"Current FSM state: {self.fsm.current_state.state_type.name}",

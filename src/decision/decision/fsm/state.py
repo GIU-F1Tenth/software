@@ -15,6 +15,7 @@ class StateTraits(IntFlag):
 
     TRAILING = auto()
     STOP = auto()
+    OVERTAKING = auto()
 
 
 @dataclass(frozen=True)

@@ -13,10 +13,6 @@ class PurePursuitState(State):
 
     _state_type = StateType(name="pure_pursuit", state_traits=StateTraits.PURE_PURSUIT)
 
-    _gap_following = StateType(
-        name="gap_following", state_traits=StateTraits.GAP_FOLLOWING
-    )
-
     @property
     def state_type(self) -> StateType:
         return self._state_type
@@ -28,8 +24,8 @@ class PurePursuitState(State):
         opponent_distance_to_path: float = float("inf"),
     ) -> StateTraits:
         if objects is not None and len(objects) > 0:
-            if is_overtake_region and is_safe_to_overtake():
-                return self._gap_following.state_traits
-            if opponent_distance_to_path < 0.4:
+            if is_overtake_region and opponent_distance_to_path < 0.4: 
+                return StateTraits.PURE_PURSUIT | StateTraits.OVERTAKING
+            elif opponent_distance_to_path < 0.4:
                 return self._state_type.state_traits | StateTraits.TRAILING
         return self._state_type.state_traits
