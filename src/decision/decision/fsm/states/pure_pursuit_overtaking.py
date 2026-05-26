@@ -16,7 +16,7 @@ class PurePursuitOvertakingState(State):
         state_traits=StateTraits.PURE_PURSUIT | StateTraits.OVERTAKING,
     )
 
-    _minimum_time_in_state = 1.0
+    _minimum_time_in_state = 2.0
 
     @property
     def state_type(self) -> StateType:
@@ -31,8 +31,4 @@ class PurePursuitOvertakingState(State):
         if objects is not None and len(objects) > 0:
             if is_overtake_region and opponent_distance_to_path >= 0.4:
                 return StateTraits.PURE_PURSUIT | StateTraits.OVERTAKING
-            elif is_overtake_region:
-                return StateTraits.PURE_PURSUIT | StateTraits.TRAILING
-            else: 
-                return StateTraits.PURE_PURSUIT
-        return self._state_type.state_traits
+        return StateTraits.PURE_PURSUIT | StateTraits.TRAILING
