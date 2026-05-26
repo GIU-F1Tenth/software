@@ -170,8 +170,11 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-# VSCode configuartion file 
+# VSCode configuartion file
 .vscode/
+
+# Claude Code per-project settings (editor-local, not project code)
+.claude/
 
 # ROS2 config files
 build/

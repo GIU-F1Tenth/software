@@ -483,3 +483,4 @@ For questions, issues, or contributions:
 ---
 
 **Happy Racing! 🏎️**
+ python scripts/generate_mask.py map.yaml
