@@ -55,3 +55,6 @@
 [submodule "src/planning/horizon_mapper"]
 	path = src/planning/horizon_mapper
 	url = https://github.com/GIU-F1Tenth/horizon_mapper.git
+[submodule "src/planning/overtaking_spline"]
+	path = src/planning/overtaking_spline
+	url = https://github.com/GIU-F1Tenth/overtaking_spline.git
