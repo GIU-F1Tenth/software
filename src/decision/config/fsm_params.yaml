@@ -9,3 +9,4 @@ fsm_node:
     trailing_topic: trailing
     odom_topic: /car_state/odom
     overtaking_allowed_file_path: ""
+    fsm_tick_rate: 80.0

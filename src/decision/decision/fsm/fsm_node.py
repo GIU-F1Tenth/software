@@ -133,6 +133,7 @@ class FSMNode(Node):
         self.declare_parameter("overtaking_path_topic", "overtaking_path")
         self.declare_parameter("final_path_topic", "pp_path")
         self.declare_parameter("overtaking_allowed_file_path", "")
+        self.declare_parameter("fsm_tick_rate", 80.0)
         self.declare_parameter("overtaking_path_timeout", 5.0)
 
         states_list = self.get_parameter("states").value
@@ -147,6 +148,7 @@ class FSMNode(Node):
         global_path_topic = self.get_parameter("global_path_topic").value
         overtaking_path_topic = self.get_parameter("overtaking_path_topic").value
         final_path_topic = self.get_parameter("final_path_topic").value
+        self.tick_rate = self.get_parameter("fsm_tick_rate").value
         self.overtaking_path_timeout = self.get_parameter("overtaking_path_timeout").value
 
         self.fsm = SimpleFSM(states_list, initial_state)
@@ -177,6 +179,9 @@ class FSMNode(Node):
             Path, final_path_topic, 10
         )
         
+        self.curr_objects = []
+        self.curr_distance_to_closest_object = float("inf")
+        self.create_timer(1.0 / self.tick_rate, self.fsm_callback)
         self.current_position = (0.0, 0.0)
         
     def overtaking_path_callback(self, msg):
@@ -188,6 +193,14 @@ class FSMNode(Node):
         self.get_logger().info(
             f"Received global path with {len(self.global_path)} points",
             throttle_duration_sec=5.0,
+        )
+
+    def fsm_callback(self):
+        self.fsm.run_once(
+            objects=self.curr_objects,
+            opponent_distance_to_path=self.curr_distance_to_closest_object,
+            is_overtake_region=self.__get_current_overtaking_allowed_point(),
+            overtaking_path=self.overtaking_path
         )
 
     def objects_callback(self, msg):
@@ -210,12 +223,8 @@ class FSMNode(Node):
             closest_object.pose.position.x,
             closest_object.pose.position.y,
         ) if closest_object is not None else (None, float("inf"))
-        self.fsm.run_once(
-            objects=msg.markers[1:],
-            opponent_distance_to_path=distance_to_point,
-            is_overtake_region=self.__get_current_overtaking_allowed_point(),
-            overtaking_path=self.overtaking_path if time.perf_counter() - self.overtaking_path_arrival_time < self.overtaking_path_timeout else None
-        )
+        self.curr_objects = msg.markers[1:]
+        self.curr_distance_to_closest_object = distance_to_point
         
         control_output_msg = String()
         control_output_msg.data = self.__get_control_topic_from_current_state()
