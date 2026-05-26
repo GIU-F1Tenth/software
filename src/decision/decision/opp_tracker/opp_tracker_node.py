@@ -6,137 +6,203 @@ from rclpy.qos import qos_profile_sensor_data
 from visualization_msgs.msg import Marker, MarkerArray
 from geometry_msgs.msg import Point
 from nav_msgs.msg import Odometry
-
-from decision.opp_tracker.opponent_tracker import (
-    OpponentObservation,
-    OpponentCenterTracker,
-    centroid,
-)
+from std_msgs.msg import Bool
+import numpy as np
 
 
-class OppTrackerNode(Node):
+class OvertakePredictorNode(Node):
     def __init__(self):
         super().__init__("opp_tracker")
 
         self.declare_parameters(
             namespace="",
             parameters=[
-                ("bbox_topic", "/object_bboxes"),
-                ("opponent_centers_topic", "/opponent_centers"),
-                ("max_history_size", 500),
-                ("marker_namespace", "opponent_centers"),
-                ("marker_scale", 0.12),
+                ("velocity_topic", "/object_velocities"),
                 ("odom_topic", "/car_state/odom"),
+                ("is_overtake_topic", "/is_overtake"),
+                ("prediction_horizon", 1.5),
+                ("prediction_dt", 0.1),
+                ("collision_radius", 0.5),
+                ("arrow_scale_seconds", 0.5),
+                ("min_opponent_speed", 0.05),
+                ("prediction_horizons_topic", "/prediction_horizons"),
+                ("map_frame", "map"),
             ],
         )
 
-        self.bbox_topic = self.get_parameter("bbox_topic").value
-        self.opponent_centers_topic = self.get_parameter(
-            "opponent_centers_topic"
-        ).value
-        self.marker_namespace = self.get_parameter("marker_namespace").value
-        self.marker_scale = self.get_parameter("marker_scale").value
+        self.velocity_topic = self.get_parameter("velocity_topic").value
         self.odom_topic = self.get_parameter("odom_topic").value
-    
-        self.tracker = OpponentCenterTracker(
-            max_history_size=self.get_parameter("max_history_size").value
-        )
+        self.is_overtake_topic = self.get_parameter("is_overtake_topic").value
+        self.prediction_horizon = self.get_parameter("prediction_horizon").value
+        self.prediction_dt = self.get_parameter("prediction_dt").value
+        self.collision_radius = self.get_parameter("collision_radius").value
+        self.arrow_scale = self.get_parameter("arrow_scale_seconds").value
+        self.min_opponent_speed = self.get_parameter("min_opponent_speed").value
+        self.prediction_horizons_topic = self.get_parameter(
+            "prediction_horizons_topic"
+        ).value
+        self.map_frame = self.get_parameter("map_frame").value
 
-        self.bbox_sub = self.create_subscription(
-            MarkerArray, self.bbox_topic, self.bbox_callback, 10
-        )
-        self.centers_pub = self.create_publisher(
-            Marker, self.opponent_centers_topic, 10
+        self.ego_x = 0.0
+        self.ego_y = 0.0
+        self.ego_vx = 0.0
+        self.ego_vy = 0.0
+        self.ego_received = False
+
+        self.velocities_sub = self.create_subscription(
+            MarkerArray, self.velocity_topic, self.velocities_callback, 10
         )
         self.odom_sub = self.create_subscription(
             Odometry, self.odom_topic, self.odom_callback, qos_profile_sensor_data
         )
-        
-        self.current_ego_position = (0.0, 0.0)
-
-        self.get_logger().info("Opponent Tracker Node initialized")
-
-    def bbox_callback(self, msg: MarkerArray):
-        centers = [
-            (marker.header, centroid(self._corner_points(marker)))
-            for marker in msg.markers
-            if self._is_bounding_box(marker)
-        ]
-        if not centers:
-            return
-
-        header, center = min(centers, key=self._distance_to_ego)
-
-        self.tracker.add_observation(
-            OpponentObservation(
-                x=center[0] + self.current_ego_position[0],
-                y=center[1] + self.current_ego_position[1],
-                z=center[2],
-                stamp=self._stamp_to_seconds(header.stamp),
-                frame_id=header.frame_id,
-            )
+        self.is_overtake_pub = self.create_publisher(
+            Bool, self.is_overtake_topic, 10
+        )
+        self.horizons_pub = self.create_publisher(
+            MarkerArray, self.prediction_horizons_topic, 10
         )
 
-        self.publish_centers()
-        
+        self.get_logger().info(
+            f"Overtake predictor initialized: horizon={self.prediction_horizon}s, "
+            f"dt={self.prediction_dt}s, collision_radius={self.collision_radius}m"
+        )
+
     def odom_callback(self, msg: Odometry):
-        self.current_ego_position = (
-            msg.pose.pose.position.x,
-            msg.pose.pose.position.y,
+        self.ego_x = msg.pose.pose.position.x
+        self.ego_y = msg.pose.pose.position.y
+
+        q = msg.pose.pose.orientation
+        yaw = np.arctan2(
+            2.0 * (q.w * q.z + q.x * q.y),
+            1.0 - 2.0 * (q.y * q.y + q.z * q.z),
         )
 
-    @staticmethod
-    def _is_bounding_box(marker):
-        return (
-            marker.type == Marker.LINE_STRIP
-            and marker.action == Marker.ADD
-            and len(marker.points) > 0
-        )
+        vx_local = msg.twist.twist.linear.x
+        vy_local = msg.twist.twist.linear.y
+        c, s = np.cos(yaw), np.sin(yaw)
+        self.ego_vx = c * vx_local - s * vy_local
+        self.ego_vy = s * vx_local + c * vy_local
+        self.ego_received = True
 
-    @staticmethod
-    def _corner_points(marker):
-        points = [(p.x, p.y, p.z) for p in marker.points]
-        if len(points) > 1 and points[0] == points[-1]:
-            points = points[:-1]
-        return points
-
-    @staticmethod
-    def _distance_to_ego(header_and_center):
-        _, center = header_and_center
-        return center[0] ** 2 + center[1] ** 2
-
-    @staticmethod
-    def _stamp_to_seconds(stamp):
-        return stamp.sec + stamp.nanosec * 1e-9
-
-    def publish_centers(self):
-        history = self.tracker.history
-        if not history:
+    def velocities_callback(self, msg: MarkerArray):
+        if not self.ego_received:
             return
 
-        marker = Marker()
-        marker.header.frame_id = history[-1].frame_id
-        marker.header.stamp = self.get_clock().now().to_msg()
-        marker.ns = self.marker_namespace
-        marker.id = 0
-        marker.type = Marker.POINTS
-        marker.action = Marker.ADD
-        marker.scale.x = self.marker_scale
-        marker.scale.y = self.marker_scale
-        marker.color.r = 1.0
-        marker.color.g = 0.2
-        marker.color.b = 0.0
-        marker.color.a = 1.0
-        marker.points = [
-            Point(x=obs.x, y=obs.y, z=obs.z) for obs in history
-        ]
+        opponents = self._extract_opponents(msg)
+        is_overtake = self._is_overtake_safe(opponents)
 
-        self.centers_pub.publish(marker)
+        out = Bool()
+        out.data = is_overtake
+        self.is_overtake_pub.publish(out)
+
+        self._publish_horizons(opponents, is_overtake)
+
+    def _extract_opponents(self, msg: MarkerArray):
+        opponents = []
+        for marker in msg.markers:
+            if marker.type != Marker.ARROW or marker.action != Marker.ADD:
+                continue
+            if len(marker.points) < 2:
+                continue
+
+            start = marker.points[0]
+            end = marker.points[1]
+
+            vx = (end.x - start.x) / self.arrow_scale
+            vy = (end.y - start.y) / self.arrow_scale
+
+            speed = np.sqrt(vx * vx + vy * vy)
+            if speed < self.min_opponent_speed:
+                continue
+
+            opponents.append((start.x, start.y, vx, vy))
+        return opponents
+
+    def _is_overtake_safe(self, opponents):
+        if not opponents:
+            return True
+
+        n_steps = max(1, int(self.prediction_horizon / self.prediction_dt))
+        radius_sq = self.collision_radius ** 2
+
+        for k in range(n_steps + 1):
+            t = k * self.prediction_dt
+
+            ego_x_t = self.ego_x + self.ego_vx * t
+            ego_y_t = self.ego_y + self.ego_vy * t
+
+            for opp_x, opp_y, opp_vx, opp_vy in opponents:
+                opp_x_t = opp_x + opp_vx * t
+                opp_y_t = opp_y + opp_vy * t
+
+                dx = opp_x_t - ego_x_t
+                dy = opp_y_t - ego_y_t
+                if dx * dx + dy * dy < radius_sq:
+                    return False
+
+        return True
+
+    def _publish_horizons(self, opponents, is_overtake):
+        arr = MarkerArray()
+        arr.markers.append(Marker(action=Marker.DELETEALL))
+
+        n_steps = max(1, int(self.prediction_horizon / self.prediction_dt))
+        stamp = self.get_clock().now().to_msg()
+
+        ego_marker = Marker()
+        ego_marker.header.frame_id = self.map_frame
+        ego_marker.header.stamp = stamp
+        ego_marker.ns = "ego_horizon"
+        ego_marker.id = 0
+        ego_marker.type = Marker.LINE_STRIP
+        ego_marker.action = Marker.ADD
+        ego_marker.scale.x = 0.06
+        if is_overtake:
+            ego_marker.color.r = 0.0
+            ego_marker.color.g = 1.0
+            ego_marker.color.b = 0.0
+        else:
+            ego_marker.color.r = 1.0
+            ego_marker.color.g = 0.0
+            ego_marker.color.b = 0.0
+        ego_marker.color.a = 1.0
+        for k in range(n_steps + 1):
+            t = k * self.prediction_dt
+            p = Point()
+            p.x = float(self.ego_x + self.ego_vx * t)
+            p.y = float(self.ego_y + self.ego_vy * t)
+            p.z = 0.05
+            ego_marker.points.append(p)
+        arr.markers.append(ego_marker)
+
+        for i, (ox, oy, ovx, ovy) in enumerate(opponents):
+            opp_marker = Marker()
+            opp_marker.header.frame_id = self.map_frame
+            opp_marker.header.stamp = stamp
+            opp_marker.ns = "opponent_horizon"
+            opp_marker.id = i
+            opp_marker.type = Marker.LINE_STRIP
+            opp_marker.action = Marker.ADD
+            opp_marker.scale.x = 0.06
+            opp_marker.color.r = 0.2
+            opp_marker.color.g = 0.6
+            opp_marker.color.b = 1.0
+            opp_marker.color.a = 1.0
+            for k in range(n_steps + 1):
+                t = k * self.prediction_dt
+                p = Point()
+                p.x = float(ox + ovx * t)
+                p.y = float(oy + ovy * t)
+                p.z = 0.05
+                opp_marker.points.append(p)
+            arr.markers.append(opp_marker)
+
+        self.horizons_pub.publish(arr)
 
 
 def main(args=None):
     rclpy.init(args=args)
-    node = OppTrackerNode()
+    node = OvertakePredictorNode()
 
     try:
         rclpy.spin(node)
