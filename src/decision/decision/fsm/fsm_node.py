@@ -200,7 +200,7 @@ class FSMNode(Node):
             objects=self.curr_objects,
             opponent_distance_to_path=self.curr_distance_to_closest_object,
             is_overtake_region=self.__get_current_overtaking_allowed_point(),
-            overtaking_path=self.overtaking_path
+            overtaking_path=self.overtaking_path if (time.perf_counter() - self.overtaking_path_arrival_time) < self.overtaking_path_timeout else None,
         )
 
     def objects_callback(self, msg):
@@ -316,6 +316,7 @@ class FSMNode(Node):
         )
 
     def __get_current_overtaking_allowed_point(self):
+        return True
         if not self.overtaking_allowed:
             return False
 
