@@ -35,7 +35,7 @@ class StateVisualizerNode(Node):
 
         self.declare_parameter("states", ["pure_pursuit_only", "pure_pursuit", "pure_pursuit_trailing", "pure_pursuit_overtaking",])
         self.declare_parameter("state_name_topic", "state_name")
-        self.declare_parameter("serial_port", "/dev/ttyACM0")
+        self.declare_parameter("serial_port", "/dev/ttyACM1")
         self.declare_parameter("baud_rate", 115200)
         self.declare_parameter("serial_timeout", 1.0)
         self.declare_parameter("default_color", [255, 255, 255])
