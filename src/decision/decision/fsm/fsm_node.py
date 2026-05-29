@@ -135,12 +135,14 @@ class FSMNode(Node):
         self.declare_parameter("overtaking_allowed_file_path", "")
         self.declare_parameter("fsm_tick_rate", 80.0)
         self.declare_parameter("overtaking_path_timeout", 5.0)
+        self.declare_parameter("state_name_topic", "state_name")
 
         states_list = self.get_parameter("states").value
         initial_state = self.get_parameter("initial_state").value
         objects_topic = self.get_parameter("objects_topic").value
         control_output_topic = self.get_parameter("output_topic").value
         trailing_topic = self.get_parameter("trailing_topic").value
+        state_name_topic = self.get_parameter("state_name_topic").value
         overtaking_allowed_file_path = self.get_parameter(
             "overtaking_allowed_file_path"
         ).value
@@ -178,6 +180,7 @@ class FSMNode(Node):
         self.final_path_pub = self.create_publisher(
             Path, final_path_topic, 10
         )
+        self.state_name_pub = self.create_publisher(String, state_name_topic, 10)
         
         self.curr_objects = []
         self.curr_distance_to_closest_object = float("inf")
@@ -202,6 +205,7 @@ class FSMNode(Node):
             is_overtake_region=self.__get_current_overtaking_allowed_point(),
             overtaking_path=self.overtaking_path if (time.perf_counter() - self.overtaking_path_arrival_time) < self.overtaking_path_timeout else None,
         )
+        self.state_name_pub.publish(String(data=self.fsm.current_state.state_type.name))
 
     def objects_callback(self, msg):
         closest_object = None
@@ -316,7 +320,6 @@ class FSMNode(Node):
         )
 
     def __get_current_overtaking_allowed_point(self):
-        return True
         if not self.overtaking_allowed:
             return False
 
