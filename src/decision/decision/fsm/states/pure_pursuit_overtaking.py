@@ -16,7 +16,7 @@ class PurePursuitOvertakingState(State):
         state_traits=StateTraits.PURE_PURSUIT | StateTraits.OVERTAKING,
     )
 
-    _minimum_time_in_state = 4.0
+    _minimum_time_in_state = 3.0
 
     @property
     def state_type(self) -> StateType:
