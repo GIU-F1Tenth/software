@@ -160,10 +160,6 @@ class StateVisualizerNode(Node):
             self.get_logger().error(f"serial write failed: {exc}")
             return
 
-        self.get_logger().info(
-            f"state={state_name} color=({r},{g},{b})", throttle_duration_sec=1.0
-        )
-
     def destroy_node(self) -> bool:
         if self._serial is not None:
             try:
